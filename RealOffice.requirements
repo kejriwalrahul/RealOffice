@@ -36,6 +36,8 @@ Functional Requirements:
 	a. Infrastructure(venue)
 	b. Users
  2. Allow scheduling of periodic/non-periodic meetings 
+    	i) Case where a valid schedule can't be generated, user shall be notified with appropriate reason
+	ii) This includes all the resources: time, meeting room, participants' availability etc
  3. Allow meetings requirements to be entered (see status SCHEDULING) 
  4. Auto-add reminders for requirements satisfaction and validation/checking/testing prior to meeting (see status PREPPING)
  5. Send reminders to meeting participants (see status PREPPED)
@@ -44,7 +46,7 @@ Functional Requirements:
  8. Manage cancellation workflow for meetings (see status CANCELLING)
  9. Allow backup generation 
 10. Allow courses(recurring/periodic meetings to be alloted) (see status RECURRING)
-11. 
+11.  
 
 States of a meeting - SCHEDULING, SCHEDULED, PREPPING, PREPPED, RUNNING, POST_MEETING, FINISHED, CANCELLING, CANCELLED, RECURRING
 
