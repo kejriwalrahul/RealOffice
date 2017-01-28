@@ -1,17 +1,53 @@
 Abstract:
-
+----------------------------------------------------
 RealOffice is an application software intended for use in the CSE department office to simplify routine procedural tasks. In essence, it allows office staff to schedule different kinds of meetings, track meeting requirements, manage room allotments, file meeting reports and cancel arrangements for cancelled meetings. It also reminds the staff regarding upcoming events that need attention. It also facilitates routine backups as replacement for hard paperwork. The protocols used by the CSE department office can be adapted to a digitized workflow. This document proceeds to build the requirements for such a system, highlighting the current workflow and possibilities for the upcoming software project.
 
 Keywords:
 ??
 
 Introduction
-
+------------------------------------------------------------
 RealOffice is a software primarily intended for use by department office staff to schedule different kinds of meetings: research scholar meetings, faculty meetings, project evaluations, poster evaluations, visitor seminars, lectures(regular and invited) selection examinations etc. and to manage the unique requirements for each meeting and appropriately allot venues. The project shall allow extensive reporting and backup facilities. The focus for this project has been the CSE department office but it may be generalized to suit any generic office. 
+
 The software allows the administrator to input department details: rooms and their infrastructure support, entities like faculty, student and staff members and time schedules. It provides a web interface for scheduling meetings (periodic and non-periodic) and request infrastrcuture and resource support.
+
 <Data storage backup medium?>
+
 There are other software products like Taskworld available of-the-shelf but are much more complex and overkill for the intended purpose. The product is designed with a minimal philosophy and is intended to be used with minimal user training.
+
 The software engineering process adopted is an agile approach with incremental development. The database will be modelled using ER diagrams and will be translated to a relational database framework.
 UML modelling?
+
 Requiirements elicited will be desctibed using use cases and scenarios.
-The remainder of the document will focus on i. General description, ii. user requirements, iii. system requirements(functional and non-functional), iv. use cases and scenarios, v. architecture(er diagram, class models, etc)  
+
+The remainder of the document will focus on i. General description, ii. user requirements, iii. system requirements(functional and non-functional), iv. use cases and scenarios, v. architecture(er diagram, class models, etc)
+
+General description(user requirements)
+-------------------------------------------------------------
+Automating CSE department Office processes. Scheduling meetings and courses- The CSE Department Office deals with students, faculty members, and staff members. It organises different kinds of meetings- lectures - regular and invited, meetings - student evaluations of batches, individual student evaluations, faculty meetings, etc.  These meetings  require different kinds of resources - stationery, snacks, student files, evaluations, classrooms with specific infrastructure etc.  This software project should enable the office staff to schedule the meeting and track the kinds of resources and numbers required, and book rooms for one meeting or for periodic sessions.  
+
+System Specification
+-------------------------------------------------------------
+
+Functional Requirements:
+========================
+ 1. Should allow configuration
+	a. Infrastructure(venue)
+	b. Users
+ 2. Allow scheduling of periodic/non-periodic meetings
+ 3. Allow meetings requirements to be entered
+ 4. Auto-add reminders for requirements satisfaction and validation/checking/testing prior to meeting
+ 5. Auto-demand report submission, signature forms etc.
+ 6. Manage cancellation workflow for meetings
+ 7. Allow report generation
+ 8. Allow backup generation 
+ 9. Send reminders to meeting participants
+10. 
+
+States of a meeting - SCHEDULED, PREPPING, RUNNING, OVER, CANCELLED 
+
+Non-Functional Requirements:
+============================
+1. Software should not use any proprietary code.
+2. Should be platform independent and run in web interfaces.
+3. Should be reliable and secure.
