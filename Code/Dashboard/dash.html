@@ -2,10 +2,34 @@
 <html>
 <head>
 	<title>RealOffice - Dashboard</title>
-	<link rel="stylesheet" href="bootstrap.min.css">
-	<script type="text/javascript" src="jquery-3.1.1.min.js"></script>
-    <script type="text/javascript" src="bootstrap.min.js"></script>
+	<link rel="stylesheet" href="includes/bootstrap.min.css">
+    <link rel="stylesheet" href="includes/fullcalendar.min.css">
+    <script type="text/javascript" src="includes/jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="includes/bootstrap.min.js"></script>
+    <script type="text/javascript" src="includes/moment.min.js"></script>
+    <script type="text/javascript" src="includes/fullcalendar.min.js"></script>
     <script type="text/javascript" src="dash.js"></script>
+
+    <style>
+        .reminder{
+            /*background: #e3eae3;*/
+            /*border-radius: 5px;*/
+            padding: 10px;
+            margin-bottom: 5px; 
+        }
+
+        .reminder:hover{
+            background: #e3eae3;
+            border-radius: 5px;
+        }
+
+        .reminder-wrapper{
+            margin-top: 10px;  
+            margin-bottom: 10px;  
+            border-bottom: 1px solid #ddd;
+        }
+
+    </style>
 </head>
 <body>
 <nav class="navbar navbar-default">
@@ -17,15 +41,18 @@
             <li class="active"><a href="#">Dashboard</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
-            <li><a href="#"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Log Out</a></li>
+            <li><a href="#menu4"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Log Out</a></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+            <li><a href="#"><span class="glyphicon glyphicon-user"></span>&nbsp;Mr. John Doe</a></li>
         </ul>
     </div>
 </nav>
 
 
-<div class="col-md-9">
-<div class="panel panel-default" style="height: 85vh;">
-    <div class="panel-heading">Dashboard</div>
+<div class="col-md-9" style="padding-right: 0px;">
+<div class="panel panel-default" style="height: 88vh; margin-bottom: 0px;">
+    <div class="panel-heading"><span class="glyphicon glyphicon-th-large"></span>&nbsp;Dashboard</div>
     
     <div class="panel-body">
         <ul class="nav nav-tabs">
@@ -48,13 +75,13 @@
 
         <div class="tab-content">
             <div id="home" class="tab-pane fade in active">
-                <h3>Welcome</h3>
+                <h3>Welcome Mr. John Doe!</h3>
                 <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
             </div>
             
             <div id="menu1" class="tab-pane fade">
-                <h3>Menu 1</h3>
-                <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                <br>
+                <div id='calendar'></div>
             </div>
 
             <div id="menu2" class="tab-pane fade">
@@ -147,10 +174,23 @@
 </div>
 
 <div class="col-md-3">
-<div class="panel panel-default" style="height: 85vh;">
-    <div class="panel-heading">Notifications</div>
+<div class="panel panel-default" style="height: 88vh; margin-bottom: 0px;">
+    <div class="panel-heading"><span class="glyphicon glyphicon-list-alt"></span>&nbsp;Reminders</div>
     
-    <div class="panel-body">
+    <div class="panel-body" style="padding-top: 0px;">
+       
+        <div class="reminder-wrapper">
+            <div class="reminder">
+                #1 Contact Organizer. 
+            </div>
+        </div>
+
+        <div class="reminder-wrapper">
+            <div class="reminder">
+                #2 Check projector. 
+            </div>
+        </div>
+
     </div>
 </div>
 
