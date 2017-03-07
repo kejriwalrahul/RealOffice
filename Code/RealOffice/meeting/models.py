@@ -9,8 +9,8 @@ from django.utils import timezone
 from datetime import datetime
 
 
-status_choices = (("SCHEDULED", 1), ("RUNNING", 2), ("POST_MEETING", 3), ("FINISHED", 4), ("CANCELLED", 5))
-rectype = (("User",1), ("Person",2))
+status_choices = ((1, "SCHEDULED"), (2, "RUNNING"), (3, "POST_MEETING"), (4, "FINISHED"), (5, "CANCELLED"))
+rectype = ((1, "User"), (2, "Person"))
 
 """
 	Extends the django User model
@@ -60,6 +60,9 @@ class Meeting(models.Model):
 	organizedBy = models.ForeignKey(Person)
 	ofType 		= models.ForeignKey(MeetingWorkflow)
 
+	def __str__(self):
+		return self.name
+
 
 class Reminder(models.Model):
 	recipient 	  = models.CharField(max_length= 64)
@@ -74,14 +77,14 @@ class Requirement(models.Model):
 	item = models.CharField(max_length= 128)
 	qty  = models.IntegerField()
 	cost = models.FloatField()
-	orderDetails = models.CharField(max_length= 128)
+	orderDetails = models.CharField(max_length= 128, default= None, null= True)
 	isApproved   = models.BooleanField()	
 	
 	prereqFor = models.ForeignKey(Meeting, on_delete= models.CASCADE)
 
 
 class Invitation(models.Model):
-	meetingId = models.ForeignKey(Meeting, on_delete= models.CASCADE)
-	personId  = models.ForeignKey(Person, on_delete= models.CASCADE)
+	meeting = models.ForeignKey(Meeting, on_delete= models.CASCADE)
+	person  = models.ForeignKey(Person, on_delete= models.CASCADE)
 
 	willAttend = models.BooleanField()

@@ -45,7 +45,6 @@ class MeetingAdmin(admin.ModelAdmin):
 
 	list_display = ('id', 'name', 'organizedBy', 'createdBy', 'ofType', 'stime', 'etime', 'hostedAt')
 
-
 class UserProfileAdmin(admin.ModelAdmin):
 	fieldsets = [
 		('User', 	{'fields': ['user', 'is_admin']})
@@ -53,11 +52,34 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 	list_display = ('id', 'user', 'is_admin')
 
+class InvitationAdmin(admin.ModelAdmin):
+	fieldsets = [
+		('Invitation', 	{'fields': ['meeting', 'person', 'willAttend']})
+	]
+
+	list_display = ('id', 'meeting', 'person', 'willAttend')
+
+class RequirementAdmin(admin.ModelAdmin):
+	fieldsets = [
+		('Prerequisite', 	{'fields': ['item', 'prereqFor', 'isApproved',]}),
+		('OrderInfo', 		{'fields': ['qty', 'cost', 'orderDetails']})
+	]
+
+	list_display = ('id', 'item', 'prereqFor', 'isApproved', 'qty', 'cost', 'orderDetails')
+
+class ReminderAdmin(admin.ModelAdmin):
+	fieldsets = [
+		('Recipient', 		{'fields': ['recipient', 'recipientType']}),
+		('ReminderInfo', 	{'fields': ['purpose', 'sendDateTime', 'notificationsFor']})
+	]
+
+	list_display = ('id', 'recipient', 'recipientType', 'purpose', 'sendDateTime', 'notificationsFor')	
+
 admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(Venue, VenueAdmin)
 admin.site.register(Person, PersonAdmin)
 admin.site.register(MeetingWorkflow, MeetingWorkflowAdmin)
 admin.site.register(Meeting, MeetingAdmin)
-admin.site.register(Reminder)
-admin.site.register(Requirement)
-admin.site.register(Invitation)
+admin.site.register(Reminder, ReminderAdmin)
+admin.site.register(Requirement, RequirementAdmin)
+admin.site.register(Invitation, InvitationAdmin)
