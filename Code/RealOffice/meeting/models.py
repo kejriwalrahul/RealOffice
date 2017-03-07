@@ -40,7 +40,7 @@ class Meeting(models.Model):
 	name 	= models.CharField(max_length= 128, unique= True)
 	stime 	= models.DateTimeField()
  	etime 	= models.DateTimeField()
-	status 	= models.IntegerField(choices= status_choices)
+	status 	= models.IntegerField(choices= status_choices, default= 1)
 	
 	createdBy 	= models.ForeignKey(UserProfile)
 	createdOn 	= models.DateTimeField(default= timezone.now)
