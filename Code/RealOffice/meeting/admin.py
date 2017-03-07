@@ -20,6 +20,8 @@ class MeetingWorkflowAdmin(admin.ModelAdmin):
 		('Meeeting Workflow', {'fields':['meetingType', 'actions']}),
 	]
 
+	list_display = ('id', 'meetingType', 'actions')
+
 class ReminderInline(admin.TabularInline):
 	model = Reminder
 	extra = 3
@@ -34,14 +36,24 @@ class InvitationInline(admin.TabularInline):
 
 class MeetingAdmin(admin.ModelAdmin):
 	fieldsets = [
-		('None', 	{'fields':['name', 'organizedBy', 'ofType']}),
+		('None', 	{'fields':['name', 'organizedBy', 'ofType', 'createdBy']}),
 		('When', 	{'fields':['stime', 'etime']}),
 		('Where', 	{'fields':['hostedAt']}),
 	]
 
 	inlines = [ReminderInline, RequirementInline, InvitationInline]
 
-admin.site.register(UserProfile)
+	list_display = ('id', 'name', 'organizedBy', 'createdBy', 'ofType', 'stime', 'etime', 'hostedAt')
+
+
+class UserProfileAdmin(admin.ModelAdmin):
+	fieldsets = [
+		('User', 	{'fields': ['user', 'is_admin']})
+	]
+
+	list_display = ('id', 'user', 'is_admin')
+
+admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(Venue, VenueAdmin)
 admin.site.register(Person, PersonAdmin)
 admin.site.register(MeetingWorkflow, MeetingWorkflowAdmin)

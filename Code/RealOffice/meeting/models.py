@@ -19,21 +19,33 @@ class UserProfile(models.Model):
 	user     = models.ForeignKey(User, on_delete= models.CASCADE)
 	is_admin = models.BooleanField()
 
+	def __str__(self):
+		return self.user.username
+
 
 class Venue(models.Model):
 	room 			= models.CharField(max_length= 64, unique= True)
 	capacity 		= models.IntegerField()
 	infrastructure 	= models.CharField(max_length= 1024)
 
+	def __str__(self):
+		return self.room
+
 
 class Person(models.Model):
 	name  = models.CharField(max_length= 128)
 	email = models.CharField(max_length= 128, unique= True)
 
+	def __str__(self):
+		return self.name
+
 
 class MeetingWorkflow(models.Model):
 	actions 	= models.CharField(max_length= 1024)
 	meetingType = models.CharField(max_length= 64, unique= True)
+
+	def __str__(self):
+		return self.meetingType
 
 
 class Meeting(models.Model):
