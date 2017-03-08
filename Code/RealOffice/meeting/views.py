@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 
 # Rest framework stuff
 from rest_framework.permissions import IsAuthenticated
@@ -18,6 +19,18 @@ def check_dict(dictionary, keys):
 			return False
 
 	return True
+
+@login_required
+def dashboard(request):
+	context = {'username': request.user}
+	return render(request, 'meeting/dash.html', context)
+
+class LogOutView(APIView):
+	permission_classes = (IsAuthenticated, )
+
+	def post(self, request):
+		request.user.auth_token.delete()
+		return Response(status=status.HTTP_200_OK)
 
 """
 class ExampleView(APIView):
