@@ -1,5 +1,7 @@
 from django.contrib import admin
 from models import *
+from django.contrib.auth.models import *
+from rest_framework import authtoken
 
 class VenueAdmin(admin.ModelAdmin):
 	fieldsets = [
@@ -75,6 +77,7 @@ class ReminderAdmin(admin.ModelAdmin):
 
 	list_display = ('id', 'recipient', 'recipientType', 'purpose', 'sendDateTime', 'notificationsFor')	
 
+# Add realoffice models
 admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(Venue, VenueAdmin)
 admin.site.register(Person, PersonAdmin)
@@ -83,3 +86,8 @@ admin.site.register(Meeting, MeetingAdmin)
 admin.site.register(Reminder, ReminderAdmin)
 admin.site.register(Requirement, RequirementAdmin)
 admin.site.register(Invitation, InvitationAdmin)
+
+# Remove default apps
+admin.site.unregister(User)
+admin.site.unregister(Group)
+admin.site.unregister(authtoken.models.Token)

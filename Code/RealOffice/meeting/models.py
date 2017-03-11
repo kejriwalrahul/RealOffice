@@ -16,7 +16,7 @@ rectype = ((1, "User"), (2, "Person"))
 	Extends the django User model
 """
 class UserProfile(models.Model):
-	user     = models.ForeignKey(User, on_delete= models.CASCADE)
+	user     = models.OneToOneField(User, on_delete= models.CASCADE)
 	is_admin = models.BooleanField()
 
 	def __str__(self):
