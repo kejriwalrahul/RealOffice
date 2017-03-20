@@ -121,7 +121,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-LOGIN_REDIRECT_URL = '/loginpage'
+LOGIN_REDIRECT_URL = '/loginpage/'
+
+LOGIN_URL = '/login/'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

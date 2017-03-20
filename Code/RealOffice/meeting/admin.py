@@ -88,6 +88,6 @@ admin.site.register(Requirement, RequirementAdmin)
 admin.site.register(Invitation, InvitationAdmin)
 
 # Remove default apps
-admin.site.unregister(User)
+# admin.site.unregister(User)
 admin.site.unregister(Group)
 admin.site.unregister(authtoken.models.Token)
