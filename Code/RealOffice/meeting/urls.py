@@ -7,6 +7,6 @@ urlpatterns = [
     url(r'^login/$', authviews.obtain_auth_token),
     url(r'^logout/$', views.LogOutView.as_view(), name='signout'),
     url(r'^dash/$', views.dashboard, name='dashboard'),
-    # url(r'^dashapi/$', views.DashView.as_view(), name='dashboard_api'),
-    url(r'^test/$', views.ExampleView.as_view(), name='dashboard'),
+    url(r'^user/usrdash/$', views.UserInfo.as_view(), name='usrinfo'),
+    url(r'^user/change_pass/$', views.ChangePassword.as_view(), name='change_password'),
 ]

@@ -1,3 +1,4 @@
+# Django Stuff
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
@@ -10,6 +11,9 @@ from rest_framework import status
 
 # Python Libs
 from datetime import datetime
+
+# Import Models
+from . import models
 
 """
 	For checking presence of required keys in incoming requests
@@ -27,18 +31,6 @@ def loginpage(request):
 	return render(request, 'meeting/login.html', context)
 
 
-"""
-class DashView(APIView):
-	permission_classes = (IsAuthenticated, )
-	renderer_classes = [TemplateHTMLRenderer]
-	template_name = 'meeting/dash.html'
-
-	def post(self, request):
-		context = {'username': request.user}
-		return Response(context)
-"""
-
-@login_required
 def dashboard(request):
 	context = {'username': request.user}
 	return render(request, 'meeting/dash.html', context)
@@ -51,13 +43,29 @@ class LogOutView(APIView):
 		request.user.auth_token.delete()
 		return Response(status=status.HTTP_200_OK)
 
+class UserInfo(APIView):
+	permission_classes = (IsAuthenticated,)
 
-class ExampleView(APIView):
-	permission_classes = (IsAuthenticated, )
-
-	def get(self, request):
-		content = {
+	def post(self, request):
+		res_data = {
 			'user': unicode(request.user),
 			'auth': unicode(request.auth)
 		}
-		return Response(content, status=status.HTTP_200_OK)
+
+		return Response(res_data, status=status.HTTP_200_OK)
+
+class ChangePassword(APIView):
+	permission_classes = (IsAuthenticated, )
+
+	def post(self, request):
+
+		if not check_dict(request.data, ['old_pass', 'new_pass']):
+			return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+		if not request.user.check_password(request.data['old_pass']):
+			return Response({}, status=status.HTTP_403_FORBIDDEN)
+
+		request.user.set_password(request.data['new_pass'])
+		request.user.save()
+
+		return Response({}, status=status.HTTP_200_OK)

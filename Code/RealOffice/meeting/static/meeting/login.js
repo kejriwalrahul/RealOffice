@@ -3,12 +3,6 @@ $(document).ready(function() {
 	var my_token = "";
 
 	$("#loginbtn").on("click", function(){
-		
-		function gotoDash(){
-			window.localStorage.setItem('token', my_token);			
-			
-		};
-
 		$.ajax({
 			url: "/login/",
 			dataType: "json",
@@ -22,9 +16,8 @@ $(document).ready(function() {
 				password: $("#password").val(),
 			},
 			success: function(data, textStatus, jqXHR){
-				console.log("Success");
-				my_token = data['token'];
-				gotoDash();
+				window.localStorage.setItem('realoffice_token', data['token']);			
+				window.location.href = '/dash';				
 			}
 		});
 
