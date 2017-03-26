@@ -40,6 +40,8 @@ $(document).ready(function(){
     // Setup Log Out
     $('#logout').on("click", function(){
 
+    	window.localStorage.removeItem("realoffice_token");
+
     	$.ajax({
     		url: "/logout/",
 			error: function(jqXHR, textStatus, errorThrown){
@@ -54,6 +56,7 @@ $(document).ready(function(){
 				window.location.href = "/";
 			}
     	});
+
     });
 
     // Change Password Form
@@ -94,5 +97,5 @@ $(document).ready(function(){
 
      });
 
-    
+
 });
