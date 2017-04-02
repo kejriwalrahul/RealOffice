@@ -87,6 +87,9 @@
                 <a data-toggle="tab" href="#addMeetingTab"><span class="glyphicon glyphicon-plus" style="margin-right:5px;"></span>Add Meetings</a>
             </li>
             <li>
+                <a data-toggle="tab" href="#addPersonTab"><span class="glyphicon glyphicon-plus"></span><span class="glyphicon glyphicon-user" style="margin-right:5px;"></span>Add Person</a>
+            </li>
+            <li>
                 <a data-toggle="tab" href="#ReportTab"><span class="glyphicon glyphicon-paperclip" style="margin-right:5px;"></span>Reports/Backups</a>
             </li>
             <li class="pull-right">
@@ -95,10 +98,6 @@
         </ul>
 
         <div class="tab-content">
-            <!-- <div id="home" class="tab-pane fade in active">
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-            </div> -->
-            
             <div id="homeTab" class="tab-pane fade in active">
                 <br>
                 <div id='calendar'></div>
@@ -108,40 +107,67 @@
                 <br>
                 <form class="">
                     <div class="form-group col-md-6" style="padding-left: 0px;">
-                        <label for="name">Meeting Name:&nbsp;</label>
-                        <input type="text" class="form-control" id="name" required>
+                        <label for="new_meeting_name">Meeting Name:&nbsp;</label>
+                        <input type="text" class="form-control" id="new_meeting_name" required>
                     </div>
                     <div class="form-group col-md-6" style="padding-right: 0px;">
-                        <label for="organizer">Organizer:&nbsp;</label>
-                        <input type="text" class="form-control" id="organizer" required>
+                        <label for="new_meeting_organizer">Organizer:&nbsp;</label>
+                        <input type="text" class="form-control" id="new_meeting_organizer" required>
                     </div>                  
                     <div class="form-group col-md-6" style="padding-left: 0px;">
-                        <label for="venue">Venue:&nbsp;</label>
-                        <input type="text" class="form-control" id="venue" required>
+                        <label for="new_meeting_venue">Venue:&nbsp;</label>
+                        <select class="form-control" id="new_meeting_venue" required>
+                            {% for venue in venues %}
+                            <option>{{ venue.room }}</option>
+                            {% endfor %}
+                        </select>
                     </div>                                        
                     <div class="form-group col-md-6" style="padding-right: 0px;">
-                        <label for="participants">Participants:&nbsp;</label>
-                        <input type="text" class="form-control" id="participants" required>
+                        <label for="new_meeting_participants">Participants:&nbsp;</label>
+                        <input type="text" class="form-control" id="new_meeting_participants" required>
                     </div>                                                            
                     <div class="form-group col-md-4" style="padding-left: 0px;">
-                        <label for="date">Date:&nbsp;</label>
-                        <input type="date" class="form-control" id="date" required>
+                        <label for="new_meeting_date">Date:&nbsp;</label>
+                        <input type="date" class="form-control" id="new_meeting_date" required>
                     </div>
                     <div class="form-group col-md-4">
-                        <label for="stime">Start Time:&nbsp;</label>
-                        <input type="time" class="form-control" id="stime" required>
+                        <label for="new_meeting_stime">Start Time:&nbsp;</label>
+                        <input type="time" class="form-control" id="new_meeting_stime" required>
                     </div>
                     <div class="form-group col-md-4"  style="padding-right: 0px;">
-                        <label for="etime">End Time:&nbsp;</label>
-                        <input type="time" class="form-control" id="etime" required>
+                        <label for="new_meeting_etime">End Time:&nbsp;</label>
+                        <input type="time" class="form-control" id="new_meeting_etime" required>
                     </div>
-                    <div class="form-group" style="padding-left: 0px;">
-                        <label for="reminders">Custom Reminders:&nbsp;</label>
-                        <input type="text" class="form-control" id="reminders" required>
+                    <div class="form-group col-md-6" style="padding-left: 0px;">
+                        <label for="new_meeting_workflow">Meeting Workflow:&nbsp;</label>
+                        <select type="text" class="form-control" id="new_meeting_workflow" required>
+                        {% for type in meetingWorkflows %}
+                            <option>{{ type.meetingType }}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group col-md-6" style="padding-left: 0px;">
+                        <label for="new_meeting_reminders">Custom Reminders:&nbsp;</label>
+                        <input type="text" class="form-control" id="new_meeting_reminders" required>
                     </div>
                     <br>
-                    <button type="submit" class="btn btn-default">Add Meeting</button>
+                    <button id="addMeetingBtn" type="button" class="btn btn-default">Add Meeting</button>
                 </form>
+            </div>
+
+            <div id="addPersonTab" class="tab-pane fade in">
+                <br>
+                <div>
+                    <div class="form-group">
+                        <label for="new_person_name">Name:</label>
+                        <input type="text" class="form-control" id="new_person_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new_person_email">Email:</label>
+                        <input type="email" class="form-control" id="new_person_email" required>
+                    </div>
+                    <button id="add_new_person" class="btn btn-default">Add Person</button>
+                </div>                
             </div>
 
             <div id="ReportTab" class="tab-pane fade">
@@ -217,7 +243,7 @@
 </div>
 
 <!-- Temp Modal triggers -->
-<div class="col-md-12">
+<div class="col-md-12" style="display: none">
 <div class="panel panel-default" style="margin-top: 10px;margin-bottom: 10px;">
     <div class="panel-heading">Temp Triggers</div>
     

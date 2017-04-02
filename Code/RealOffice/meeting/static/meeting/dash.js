@@ -97,5 +97,140 @@ $(document).ready(function(){
 
      });
 
+    // Add new person form
+    $("#add_new_person").on("click", function(){
+    	$.ajax({
+	    	url: '/person/add/',
+	    	method: 'POST',
+			headers: {
+				Authorization: "token " + my_token,
+			},
+			data: {
+				'name': $("#new_person_name").val(),
+				'email': $("#new_person_email").val(),
+			},
+			success: function(data, textStatus, jqXHR){
+	    		if('error' in data){
+		    		$("#status_heading").html("Error: " + data['error']);
+		    		$('#statusModal').modal('show');
+	    		}
+				else{
+		    		$("#status_heading").html("Success!!");
+		    		$('#statusModal').modal('show');
+				}			
+			},
+			error: function(jqXHR, textStatus, errorThrown){
+				console.log("Error!");
+				console.log(errorThrown);
+	    		// $('#loadingModal').modal('hide');
+	    		$("#status_heading").html("Failed to add person!");
+	    		$('#statusModal').modal('show');
+			}    		
+    	});    	
+    });
+
+    // Check if organizer exists
+    $("#new_meeting_organizer").on("change", function(){
+    	$.ajax({
+	    	url: '/person/check/',
+	    	method: 'POST',
+			headers: {
+				Authorization: "token " + my_token,
+			},
+			data: {
+				'persons': $("#new_meeting_organizer").val(),
+			},
+			success: function(data, textStatus, jqXHR){
+	    		if(data['unknown'].length == 0 && data['ambiguous'].length == 0)
+		    		$('#new_meeting_organizer').css('box-shadow', '0px 0px 6px green');
+				else{
+		    		$('#new_meeting_organizer').css('box-shadow', '0px 0px 6px red');
+		    		$("#status_heading").html("Unkown Names: " + data['unknown'] + 
+		    			"<br>" + "Ambiguous Names: " + data['ambiguous']);
+		    		$('#statusModal').modal('show');
+				}			
+			},
+			error: function(jqXHR, textStatus, errorThrown){
+	    		$('#new_meeting_organizer').css('box-shadow', '0px 0px 6px red');
+				console.log("Error!");
+				console.log(errorThrown);
+	    		// $('#loadingModal').modal('hide');
+	    		$("#status_heading").html("Failed to check person!");
+	    		$('#statusModal').modal('show');
+			}    		
+    	});    	
+    });
+
+    // Check if participants exist
+    $("#new_meeting_participants").on("change", function(){
+    	$.ajax({
+	    	url: '/person/check/',
+	    	method: 'POST',
+			headers: {
+				Authorization: "token " + my_token,
+			},
+			data: {
+				'persons': $("#new_meeting_participants").val(),
+			},
+			success: function(data, textStatus, jqXHR){
+	    		if(data['unknown'].length == 0 && data['ambiguous'].length == 0)
+		    		$('#new_meeting_participants').css('box-shadow', '0px 0px 6px green');
+				else{
+		    		$('#new_meeting_participants').css('box-shadow', '0px 0px 6px red');
+		    		$("#status_heading").html("Unkown Names: " + data['unknown'] + 
+		    			"<br>" + "Ambiguous Names: " + data['ambiguous']);
+		    		$('#statusModal').modal('show');
+				}			
+			},
+			error: function(jqXHR, textStatus, errorThrown){
+	    		$('#new_meeting_participants').css('box-shadow', '0px 0px 6px red');
+				console.log("Error!");
+				console.log(errorThrown);
+	    		// $('#loadingModal').modal('hide');
+	    		$("#status_heading").html("Failed to check person!");
+	    		$('#statusModal').modal('show');
+			}    		
+    	});    	
+    });    
+
+    // Add meeting form
+    $("#addMeetingBtn").on("click", function(){
+    	console.log("Triggered");
+    	$.ajax({
+	    	url: '/meeting/add/',
+	    	method: 'POST',
+			headers: {
+				Authorization: "token " + my_token,
+			},
+			data: {
+				'name': 		$("#new_meeting_name").val(),
+				'organizer': 	$("#new_meeting_organizer").val(), 
+				'venue': 		$("#new_meeting_venue").val(), 
+				'participants': $("#new_meeting_participants").val(), 
+				'date': 		$("#new_meeting_date").val(), 
+				'stime': 		$("#new_meeting_stime").val(), 
+				'etime': 		$("#new_meeting_etime").val(),
+				'workflow': 	$("#new_meeting_workflow").val()
+			},
+			success: function(data, textStatus, jqXHR){
+	    		if('error' in data){
+		    		$("#status_heading").html("Error: " + data['error']);
+		    		$('#statusModal').modal('show');
+	    		}
+	    		else{
+		    		$("#status_heading").html("Success!!");
+		    		$('#statusModal').modal('show');	    			
+	    		}
+			},
+			error: function(jqXHR, textStatus, errorThrown){
+	    		$('#participants').css('box-shadow', '0px 0px 6px red');
+				console.log("Error!");
+				console.log(errorThrown);
+	    		// $('#loadingModal').modal('hide');
+	    		$("#status_heading").html("Failed to add meeting!");
+	    		$('#statusModal').modal('show');
+			}    		    		
+    	});
+    });
 
 });
