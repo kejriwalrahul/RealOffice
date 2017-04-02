@@ -34,6 +34,37 @@ $(document).ready(function(){
 		return hours + ":" + minutes + " hrs " + date + postfix + " " + monthNames[dateObj.getUTCMonth()] + " " + dateObj.getUTCFullYear();
 	};
 
+	function approvalToggle(meetingName, itemname){
+	    $.ajax({
+	    	url: '/requirement/toggle/',
+	    	method: 'POST',
+			headers: {
+				Authorization: "token " + my_token,
+			},
+			data: {
+				'name': meetingName,
+				'item': itemname
+			},
+			success: function(data, textStatus, jqXHR){
+				if('error' in data){
+			    	$("#status_heading").html("Error: " + data['error']);
+			    	$('#statusModal').modal('show');
+				}
+				else{
+			    	$("#status_heading").html("Successfully update approval status!");
+			    	$('#statusModal').modal('show');					
+				}
+			},
+			error: function(jqXHR, textStatus, errorThrown){
+				console.log("Error!");
+				console.log(errorThrown);
+	    		// $('#loadingModal').modal('hide');
+		    	$("#status_heading").html("Failure in updating approval status!");
+		    	$('#statusModal').modal('show');
+			}
+	    });
+	}
+
     // page is now ready, initialize the calendar...
     $('#calendar').fullCalendar({
 	    contentHeight: window.innerHeight*0.61,
@@ -47,6 +78,45 @@ $(document).ready(function(){
 	    	$('#view_meeting_organizer').html(event.organizer);
 	    	$('#view_meeting_participants').html(event.participants);
 	    	$('#view_meeting_headcount').html();
+
+	    	var new_table = "<table class='table table-bordered'>";
+	    	new_table += 
+	    		"<tr> \
+					<th>Item</th> \
+					<th>Qty</th> \
+					<th>Cost</th> \
+					<th>isApproved</th> \
+	    		</tr>"
+	    	for(var i=0; i<event.requirements.length; i++){
+	    		new_table += "<tr>";
+	    		new_table += "<td>" + event.requirements[i][0] + "</td>"
+	    		new_table += "<td>" + event.requirements[i][1] + "</td>"
+	    		new_table += "<td>" + event.requirements[i][2] + "</td>"
+	    		
+	    		var checked = "";
+	    		if(event.requirements[i][3] == true)
+	    			checked = "checked";
+	    		
+	    		new_table += 
+	    		"<td style='padding-bottom:0px'> \
+	    			<div class='checkbox' style='margin:0px'> \
+  						<label><input class='approve_toggle' type='checkbox' " + checked + "></label>\
+					</div>\
+				</td>"
+	    		new_table += "</tr>";
+	    	}
+	    	new_table += "</table>";
+	    	if(event.requirements.length != 0){
+	    		$('#req_container').html(new_table)
+	    		$(".approve_toggle").on('click', function(){
+			    	var itemname = $(this).parent().parent().parent().parent().children().first().html();
+			    	var meetingName = $('#view_meeting_name').html();
+			    	approvalToggle(meetingName, itemname);
+			    });
+	    	}
+	    	else
+	    		$('#req_container').html("No Requirements Yet!")
+
 	    	$('#viewMeetingModal').modal('show');
 	    }
     });
@@ -82,7 +152,8 @@ $(document).ready(function(){
 						type: meetings[i][5],
 						stime: meetings[i][1],
 						etime: meetings[i][2],
-						participants: meetings[i][6]
+						participants: meetings[i][6],
+						requirements: meetings[i][7]
 					}
 					$("#calendar").fullCalendar('renderEvent', event, stick=true);
 				}
@@ -123,7 +194,8 @@ $(document).ready(function(){
 						type: meetings[i][5],
 						stime: meetings[i][1],
 						etime: meetings[i][2],
-						participants: meetings[i][6]
+						participants: meetings[i][6],
+						requirements: meetings[i][7]
 					}
 					$("#calendar").fullCalendar('renderEvent', event, stick=true);
 				}
@@ -350,4 +422,169 @@ $(document).ready(function(){
     	});
     });
 
+    // Generate Report
+    $("#gen_report").on('click', function(){
+    	$.ajax({
+	    	url: '/report/',
+	    	method: 'POST',
+			headers: {
+				Authorization: "token " + my_token,
+			},
+			data: {
+				'start': $("#report_sdate").val(),
+				'end': 	 $("#report_edate").val(), 
+			},
+			success: function(data, textStatus, jqXHR){
+	    		if('error' in data){
+		    		$("#status_heading").html("Error: " + data['error']);
+		    		$('#statusModal').modal('show');
+	    		}
+	    		else{	    		
+	    			var new_table = "<table class='table table-striped table-hover'>";
+	    			new_table += "<tr> \
+	    				<th>Meeting Name</th>\
+	    				<th>Start</th>\
+	    				<th>End</th>\
+	    				<th>Venue</th>\
+	    				<th>Organizer</th>\
+	    				<th>Meeting Type</th>\
+	    				<th>Participants</th>\
+    				</tr>"
+	    			
+	    			for(var i=0; i<data['meetings'].length; i++){
+	    				new_table += "<tr>";
+	    				for(var j=0; j<data['meetings'][i].length; j++){
+	    					new_table += "<td>";
+	    					if(j==1 || j==2)
+	    						new_table += pretty_date(data['meetings'][i][j]);
+	    					else
+	    						new_table += data['meetings'][i][j];
+	    					new_table += "</td>";
+	    				}
+	    				new_table += "</tr>";
+	    			}
+	    			new_table += "</table>"
+	    			$("#report").append(new_table);
+	    		}
+			},
+			error: function(jqXHR, textStatus, errorThrown){
+				console.log("Error!");
+				console.log(errorThrown);
+	    		// $('#loadingModal').modal('hide');
+	    		$("#status_heading").html("Failed to generate report!");
+	    		$('#statusModal').modal('show');
+			}    		    		
+    	});    	
+    });
+
+    // Generate Backup
+    $("#gen_backup").on('click', function(){
+    	$.ajax({
+	    	url: '/report/',
+	    	method: 'POST',
+			headers: {
+				Authorization: "token " + my_token,
+			},
+			data: {
+				'start': $("#report_sdate").val(),
+				'end': 	 $("#report_edate").val(), 
+			},
+			success: function(data, textStatus, jqXHR){
+	    		if('error' in data){
+		    		$("#status_heading").html("Error: " + data['error']);
+		    		$('#statusModal').modal('show');
+	    		}
+	    		else{	    		
+					var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data['meetings']));
+
+					var dlAnchorElem = document.getElementById('downloadAnchorElem');
+					dlAnchorElem.setAttribute("href", dataStr);
+					dlAnchorElem.setAttribute("download", "backup.json");
+					dlAnchorElem.click();
+	    		}
+			},
+			error: function(jqXHR, textStatus, errorThrown){
+				console.log("Error!");
+				console.log(errorThrown);
+	    		// $('#loadingModal').modal('hide');
+	    		$("#status_heading").html("Failed to generate report!");
+	    		$('#statusModal').modal('show');
+			}    		    		
+    	});    	
+    });
+
+    $("#del_meeting").on("click", function(){
+    	$.ajax({
+	    	url: '/meeting/delete/',
+	    	method: 'POST',
+			headers: {
+				Authorization: "token " + my_token,
+			},
+			data: {
+				'meetingName': $("#view_meeting_name").html(),
+			},
+			success: function(data, textStatus, jqXHR){
+	    		if('error' in data){
+		    		$("#status_heading").html("Error: " + data['error']);
+		    		$('#statusModal').modal('show');
+	    		}
+	    		else{	    			    			
+	    			$('#viewMeetingModal').modal('hide');
+		    		$("#status_heading").html("Deleted!");
+		    		$('#statusModal').modal('show');
+		    		$('#homelink').click();
+	    		}
+			},
+			error: function(jqXHR, textStatus, errorThrown){
+				console.log("Error!");
+				console.log(errorThrown);
+	    		// $('#loadingModal').modal('hide');
+	    		$("#status_heading").html("Failed to delete meeting!");
+	    		$('#statusModal').modal('show');
+			}    		    		
+    	});   
+    });
+
+    $("#reschedule_meeting").on("click", function(){
+    	if($("#reschdule_form").css('display') == 'none')
+	    	$("#reschdule_form").css("display", "inline");
+    	else
+	    	$("#reschdule_form").css("display", "none");
+    });
+
+    $("#update_reschedule").on("click", function(){
+    	$.ajax({
+	    	url: '/meeting/reschedule/',
+	    	method: 'POST',
+			headers: {
+				Authorization: "token " + my_token,
+			},
+			data: {
+				'name': $("#view_meeting_name").html(),
+				'date': $("#reschedule_meeting_date").val(),
+				'stime': $("#reschedule_meeting_stime").val(),
+				'etime': $("#reschdule_meeting_etime").val()
+			},
+			success: function(data, textStatus, jqXHR){
+	    		if('error' in data){
+		    		$("#status_heading").html("Error: " + data['error']);
+		    		$('#statusModal').modal('show');
+	    		}
+	    		else{	    			    			
+	    			$('#viewMeetingModal').modal('hide');
+	    			$("#reschdule_form").css("display", "none");
+		    		$("#status_heading").html("Rescheduled!");
+		    		$('#statusModal').modal('show');
+		    		$('#homelink').click();
+	    		}
+			},
+			error: function(jqXHR, textStatus, errorThrown){
+				console.log("Error!");
+				console.log(errorThrown);
+	    		// $('#loadingModal').modal('hide');
+	    		$("#status_heading").html("Failed to reschedule meeting!");
+	    		$('#statusModal').modal('show');
+			}    		    		
+    	});   
+    });	
 });
