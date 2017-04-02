@@ -1,10 +1,54 @@
 $(document).ready(function(){
 	var my_token = window.localStorage.getItem("token");
+	var monthNames = [
+	    "January", "February", "March",
+	    "April", "May", "June", "July",
+	    "August", "September", "October",
+	    "November", "December"
+	];
+
+	function pretty_date(date){
+		date = date.substring(0, date.length-1);
+		var dateObj = new Date(date);
+		
+		var hours = dateObj.getUTCHours();
+		var minutes =  dateObj.getUTCMinutes();
+		var date = dateObj.getUTCDate();
+		var postfix = "th";
+
+		if(hours < 10)	hours = "0" + hours;
+		else			hours = ""  + hours; 
+
+		if(minutes<10)  minutes = "0" + minutes;
+		else 			minutes = ""  + minutes;
+
+		if(date%10 == 1)	 	postfix = "st";
+		else if(date%10 == 2)	postfix = "nd";
+		else if(date%10 == 3)	postfix = "rd";
+
+		if(date<10)		date = "0" + date;
+		else 			date = ""  + date;
+
+		postfix = "<sup>" + postfix + "</sup>"
+
+		return hours + ":" + minutes + " hrs " + date + postfix + " " + monthNames[dateObj.getUTCMonth()] + " " + dateObj.getUTCFullYear();
+	};
 
     // page is now ready, initialize the calendar...
     $('#calendar').fullCalendar({
 	    contentHeight: window.innerHeight*0.61,
-	    handleWindowResize: true
+	    handleWindowResize: true,
+	    eventClick: function(event, jsevent, view){
+	    	$('#view_meeting_name').html(event.title);
+	    	$('#view_meeting_venue').html(event.venue);
+	    	$('#view_meeting_type').html(event.type);
+	    	$('#view_meeting_start').html(pretty_date(event.stime));
+	    	$('#view_meeting_end').html(pretty_date(event.etime));
+	    	$('#view_meeting_organizer').html(event.organizer);
+	    	$('#view_meeting_participants').html();
+	    	$('#view_meeting_headcount').html();
+	    	$('#viewMeetingModal').modal('show');
+	    }
     });
 
     // Load User Info
@@ -25,7 +69,22 @@ $(document).ready(function(){
 			success: function(data, textStatus, jqXHR){
 				console.log("Success");
 	    		$('#loadingModal').modal('hide');
-				$("#user").html(data['user'])
+				$("#user").html(data['user']);
+
+				var meetings = data['meetings'];
+				for(var i=0; i<meetings.length; i++){
+					var event = {
+						title: meetings[i][0],
+						start: meetings[i][1],
+						end: meetings[i][2],
+						venue: meetings[i][3],
+						organizer: meetings[i][4],
+						type: meetings[i][5],
+						stime: meetings[i][1],
+						etime: meetings[i][2]
+					}
+					$("#calendar").fullCalendar('renderEvent', event, stick=true);
+				}
 			},
 			error: function(jqXHR, textStatus, errorThrown){
 				console.log("Error!");
@@ -36,6 +95,40 @@ $(document).ready(function(){
 			}
 	    });    	
     }
+
+    // Update home
+    $("#homelink").on("click", function(){
+	    $.ajax({
+	    	url: '/user/usrdash/',
+	    	method: 'POST',
+			headers: {
+				Authorization: "token " + my_token,
+			},
+			success: function(data, textStatus, jqXHR){
+				var meetings = data['meetings'];
+				$("#calendar").fullCalendar('removeEvents');
+				for(var i=0; i<meetings.length; i++){
+					var event = {
+						title: meetings[i][0],
+						start: meetings[i][1],
+						end: meetings[i][2],
+						venue: meetings[i][3],
+						organizer: meetings[i][4],
+						type: meetings[i][5],
+						stime: meetings[i][1],
+						etime: meetings[i][2]
+					}
+					$("#calendar").fullCalendar('renderEvent', event, stick=true);
+				}
+			},
+			error: function(jqXHR, textStatus, errorThrown){
+				console.log("Error!");
+				console.log(errorThrown);
+		    	$("#status_heading").html("Failure in updating calendar!");
+		    	$('#statusModal').modal('show');
+			}
+	    });
+    });
 
     // Setup Log Out
     $('#logout').on("click", function(){
@@ -56,7 +149,6 @@ $(document).ready(function(){
 				window.location.href = "/";
 			}
     	});
-
     });
 
     // Change Password Form
@@ -84,6 +176,10 @@ $(document).ready(function(){
 		    		// $('#loadingModal').modal('hide');
 		    		$("#status_heading").html("Successfully changed password!");
 		    		$('#statusModal').modal('show');
+					
+					$("#oldpwd").val('');
+					$("#newpwd").val('');
+					$("#confirmpwd").val('');
 				},
 				error: function(jqXHR, textStatus, errorThrown){
 					console.log("Error!");
@@ -117,6 +213,9 @@ $(document).ready(function(){
 				else{
 		    		$("#status_heading").html("Success!!");
 		    		$('#statusModal').modal('show');
+				
+		    		$("#new_person_name").val('');
+		    		$("#new_person_email").val('');
 				}			
 			},
 			error: function(jqXHR, textStatus, errorThrown){
@@ -220,6 +319,17 @@ $(document).ready(function(){
 	    		else{
 		    		$("#status_heading").html("Success!!");
 		    		$('#statusModal').modal('show');	    			
+	    		
+		    		$("#new_meeting_name").val('');
+		    		$("#new_meeting_organizer").val('');
+		    		$("#new_meeting_venue").val('');
+		    		$("#new_meeting_participants").val('');
+		    		$("#new_meeting_date").val('');
+		    		$("#new_meeting_stime").val('');
+		    		$("#new_meeting_etime").val('');
+		    		$("#new_meeting_workflow").val('');
+		    		$('#new_meeting_organizer').css('box-shadow', '0px 0px 0px green');
+		    		$('#new_meeting_participants').css('box-shadow', '0px 0px 0px green');
 	    		}
 			},
 			error: function(jqXHR, textStatus, errorThrown){

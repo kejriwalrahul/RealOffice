@@ -72,9 +72,13 @@ class UserInfo(APIView):
 	permission_classes = (IsAuthenticated,)
 
 	def post(self, request):
+		meetings = Meeting.objects.filter(stime__gte= datetime.now().date())
+
 		res_data = {
 			'user': unicode(request.user),
-			'auth': unicode(request.auth)
+			'auth': unicode(request.auth),
+			'meetings': [(meeting.name, meeting.stime, meeting.etime, meeting.hostedAt.room, 
+				meeting.organizedBy.name, meeting.ofType.meetingType) for meeting in meetings]
 		}
 
 		return Response(res_data, status=status.HTTP_200_OK)
@@ -86,21 +90,6 @@ class CheckPerson(APIView):
 		if not check_dict(request.data, ['persons']):
 			return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
-		"""
-		res = {
-			'unknown': [],
-			'ambiguous': []
-		}
-
-		persons_to_check = request.data['persons'].replace('[','').replace(']','').replace('"','').split(',')
-		for person in persons_to_check:
-			person = person.strip()
-			people = Person.objects.filter(name=person)
-			if not len(people):
-				res['unknown'].append(person)
-			elif len(people) > 1:
-				res['ambiguous'].append(people)
-		"""
 		res = check_person(request.data['persons'])
 		res.pop('known', None)
 

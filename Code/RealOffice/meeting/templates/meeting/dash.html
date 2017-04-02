@@ -53,6 +53,10 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .fc-event-container{
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -81,7 +85,7 @@
     <div class="panel-body">
         <ul class="nav nav-tabs">
             <li class="active">
-                <a data-toggle="tab" href="#homeTab"><span class="glyphicon glyphicon-home" style="margin-right:5px;"></span>Home</a>
+                <a id="homelink" data-toggle="tab" href="#homeTab"><span class="glyphicon glyphicon-home" style="margin-right:5px;"></span>Home</a>
             </li>
             <li>
                 <a data-toggle="tab" href="#addMeetingTab"><span class="glyphicon glyphicon-plus" style="margin-right:5px;"></span>Add Meetings</a>
@@ -318,16 +322,24 @@
     <div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title">Meeting: meetingName?</h4>
+            <h4 class="modal-title">Meeting: <span id="view_meeting_name"></span></h4>
         </div>
         <div class="modal-body">
             <table class="table table-hover">
                 <tr>
                     <td style="width: 200px; text-align: right;">
+                        Meeting Workflow
+                    </td>
+                    <td>
+                        <span id="view_meeting_type"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width: 200px; text-align: right;">
                         Venue
                     </td>
                     <td>
-                        venue?
+                        <span id="view_meeting_venue"></span>
                     </td>
                 </tr>
                 <tr>
@@ -335,7 +347,7 @@
                         Start Time
                     </td>
                     <td>
-                        stime?
+                        <span id="view_meeting_start"></span>
                     </td>
                 </tr>
                 <tr>
@@ -343,7 +355,7 @@
                         End Time
                     </td>
                     <td>
-                        etime?
+                        <span id="view_meeting_end"></span>
                     </td>
                 </tr>
                 <tr>
@@ -351,7 +363,7 @@
                         Organizer
                     </td>
                     <td>
-                        organizer?
+                        <span id="view_meeting_organizer"></span>
                     </td>
                 </tr>
                 <tr>
@@ -359,7 +371,7 @@
                         Participants
                     </td>
                     <td>
-                        participants?
+                        <span id="view_meeting_participants"></span>
                     </td>
                 </tr>
                 <tr>
@@ -367,7 +379,7 @@
                         RSVPed
                     </td>
                     <td>
-                        headcount?
+                        <span id="view_meeting_"></span>
                     </td>
                 </tr>        
             </table>
