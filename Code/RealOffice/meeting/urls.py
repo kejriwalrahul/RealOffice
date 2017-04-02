@@ -16,11 +16,12 @@ urlpatterns = [
     url(r'^person/add/$', views.AddPerson.as_view(), name='add_person'),
 
     url(r'^meeting/add/$', views.AddMeeting.as_view(), name='add_meeting'),
-    url(r'^invitation/accept/$', views.AcceptInvitation.as_view(), name='invite_accept'),
     url(r'^meeting/delete/$', views.DeleteMeeting.as_view(), name='del_meeting'),
     url(r'^meeting/reschedule/$', views.RescheduleMeeting.as_view(), name='reschedule_meeting'),
 
     url(r'^report/$', views.Report.as_view(), name='report'),
 
     url(r'^requirement/toggle/$', views.RequirementApprovalToggle.as_view(), name='requirement_toggle'),
+   
+    url(r'^invitation/accept/$', views.AcceptInvitation.as_view(), name='invite_accept'),
 ]
