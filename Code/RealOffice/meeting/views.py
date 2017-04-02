@@ -179,6 +179,22 @@ class AddMeeting(APIView):
 						  createdOn= datetime.now(), ofType= workflow)
 		meeting.save()
 
+		from django.template.loader import render_to_string
+		from django.core.mail import EmailMessage
+		mail_obj = {}
+		# meeting = self.meeting
+		mail_obj['subject'] = 'RealOffice: Meeting '+meeting.name+' created'
+		mail_obj['message'] = render_to_string('organizer_mail.html', {'meeting': meeting})
+		mail_obj['sendermail'] = meeting.organizedBy.email
+		mail_obj['receiver'] = meeting.organizedBy.email
+		msg = EmailMessage(
+		    mail_obj['subject'],
+		    mail_obj['message'],
+		    from_email=mail_obj['sendermail'],
+		    to=[mail_obj['receiver']]
+		)
+		msg.content_subtype = 'html'
+		msg.send()
 		for participant in participants:
 			Invitation(meeting= meeting, person= participant, willAttend= False).save()
 
@@ -199,4 +215,10 @@ class ChangePassword(APIView):
 		request.user.save()
 
 		return Response({}, status=status.HTTP_200_OK)
+
+class AcceptInvitation(APIView):
+	def get(self, request):
+		from django.http import HttpResponse
+		Invitation.objects.filter(token=request.GET['token']).update(willAttend=True)
+		return HttpResponse("<h1>Invite Accepted! Thank you for the response!</h1>")
 
