@@ -78,9 +78,12 @@ def meeting_summary(startdate= datetime.now().date(), enddate= None):
 		invitations  = Invitation.objects.filter(meeting= meeting)
 		participants = [invitation.person.name for invitation in invitations]
 
+		requirements = Requirement.objects.filter(prereqFor= meeting)
+		requirements = [[requirement.item, requirement.qty, requirement.cost, requirement.isApproved] for requirement in requirements]
+
 		meeting_info.append([
 			meeting.name, meeting.stime, meeting.etime, meeting.hostedAt.room, 
-			meeting.organizedBy.name, meeting.ofType.meetingType, ", ".join(participants)])
+			meeting.organizedBy.name, meeting.ofType.meetingType, ", ".join(participants), requirements])
 
 	return meeting_info
 
@@ -201,6 +204,54 @@ class AddMeeting(APIView):
 
 		return Response({}, status=status.HTTP_200_OK)
 
+class DeleteMeeting(APIView):
+	permission_classes = (IsAuthenticated, )
+
+	def post(self, request):
+		if not check_dict(request.data, ['meetingName']):
+			return Response({}, status= status.HTTP_400_BAD_REQUEST)
+
+		meeting = Meeting.objects.filter(name= request.data['meetingName'])
+		if not meeting:
+			return Response({'error': 'Meeting name does not exist!'}, status= status.HTTP_200_OK)
+
+		meeting[0].delete()
+
+		return Response({}, status= status.HTTP_200_OK)
+
+class RescheduleMeeting(APIView):
+	permission_classes = (IsAuthenticated, )
+
+	def post(self, request):
+		if not check_dict(request.data, ['name', 'date', 'stime', 'etime']):
+			return Response({}, status= status.HTTP_400_BAD_REQUEST)
+
+		# Validate Times
+		stime = datetime.strptime(request.data['date'] + " " + request.data['stime'], "%Y-%m-%d %H:%M")
+		etime = datetime.strptime(request.data['date'] + " " + request.data['etime'], "%Y-%m-%d %H:%M")
+		if stime >= etime:
+			return Response({'error': 'Start time >= End time!'}, status=status.HTTP_200_OK)
+
+		# Validate meeting
+		meeting = Meeting.objects.filter(name= request.data['name'])
+		if not meeting:
+			return Response({'error': 'Meeting name does not exist!'}, status=status.HTTP_200_OK)
+		else:
+			meeting = meeting[0]
+
+		# Check for clashes
+		clash_meetings_bef = Meeting.objects.filter(hostedAt= meeting.hostedAt, stime__lte= stime, etime__gte= stime)
+		clash_meetings_aft = Meeting.objects.filter(hostedAt= meeting.hostedAt, stime__lte= etime, etime__gte= etime)
+		clash_meetings_dur = Meeting.objects.filter(hostedAt= meeting.hostedAt, stime__gte= stime, etime__lte= etime)
+		if clash_meetings_bef or clash_meetings_aft or clash_meetings_dur:
+			return Response({'error': 'Meeting Clash!'}, status=status.HTTP_200_OK)
+
+		meeting.stime = stime
+		meeting.etime = etime
+		meeting.save()
+
+		return Response({}, status= status.HTTP_200_OK)
+
 class ChangePassword(APIView):
 	permission_classes = (IsAuthenticated, )
 
@@ -217,3 +268,20 @@ class ChangePassword(APIView):
 
 		return Response({}, status=status.HTTP_200_OK)
 
+class RequirementApprovalToggle(APIView):
+	permission_classes = (IsAuthenticated, )
+
+	def post(self, request):
+		if not check_dict(request.data, ['name', 'item']):
+			return Response({}, status= status.HTTP_400_BAD_REQUEST)
+
+		req = Requirement.objects.filter(prereqFor__name= request.data['name'], item= request.data['item'])
+		if not req:
+			return Response({'error': 'Requirement does not exist!'}, status= status.HTTP_200_OK)
+		else:
+			req = req.first()
+
+		req.isApproved = not req.isApproved
+		req.save()
+
+		return Response({}, status= status.HTTP_200_OK)
