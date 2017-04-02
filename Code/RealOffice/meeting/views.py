@@ -74,11 +74,20 @@ class UserInfo(APIView):
 	def post(self, request):
 		meetings = Meeting.objects.filter(stime__gte= datetime.now().date())
 
+		meeting_info = []
+		for meeting in meetings:
+			invitations = Invitation.objects.filter(meeting= meeting)
+			participants = [invitation.person.name for invitation in invitations]
+
+			meeting_info.append([
+				meeting.name, meeting.stime, meeting.etime, meeting.hostedAt.room, 
+				meeting.organizedBy.name, meeting.ofType.meetingType, ", ".join(participants)])
+
+
 		res_data = {
 			'user': unicode(request.user),
 			'auth': unicode(request.auth),
-			'meetings': [(meeting.name, meeting.stime, meeting.etime, meeting.hostedAt.room, 
-				meeting.organizedBy.name, meeting.ofType.meetingType) for meeting in meetings]
+			'meetings': meeting_info
 		}
 
 		return Response(res_data, status=status.HTTP_200_OK)
@@ -138,6 +147,7 @@ class AddMeeting(APIView):
 
 		# Validate participants
 		res = check_person(req.data['participants'])
+		participants = res['known']
 		if len(res['unknown']) or len(res['ambiguous']):
 			return Response({'error': 'Organizer unknown or ambiguous!'}, status=status.HTTP_200_OK)
 
@@ -168,6 +178,9 @@ class AddMeeting(APIView):
 						  stime= stime, etime= etime, status= 1, createdBy= req.user.userprofile, 
 						  createdOn= datetime.now(), ofType= workflow)
 		meeting.save()
+
+		for participant in participants:
+			Invitation(meeting= meeting, person= participant, willAttend= False).save()
 
 		return Response({}, status=status.HTTP_200_OK)
 

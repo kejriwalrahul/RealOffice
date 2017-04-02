@@ -45,7 +45,7 @@ $(document).ready(function(){
 	    	$('#view_meeting_start').html(pretty_date(event.stime));
 	    	$('#view_meeting_end').html(pretty_date(event.etime));
 	    	$('#view_meeting_organizer').html(event.organizer);
-	    	$('#view_meeting_participants').html();
+	    	$('#view_meeting_participants').html(event.participants);
 	    	$('#view_meeting_headcount').html();
 	    	$('#viewMeetingModal').modal('show');
 	    }
@@ -81,7 +81,8 @@ $(document).ready(function(){
 						organizer: meetings[i][4],
 						type: meetings[i][5],
 						stime: meetings[i][1],
-						etime: meetings[i][2]
+						etime: meetings[i][2],
+						participants: meetings[i][6]
 					}
 					$("#calendar").fullCalendar('renderEvent', event, stick=true);
 				}
@@ -95,6 +96,11 @@ $(document).ready(function(){
 			}
 	    });    	
     }
+
+    // On click of username 
+    $('#user').on('click', function(){
+    	$('#settingLink').click();
+    });
 
     // Update home
     $("#homelink").on("click", function(){
@@ -116,7 +122,8 @@ $(document).ready(function(){
 						organizer: meetings[i][4],
 						type: meetings[i][5],
 						stime: meetings[i][1],
-						etime: meetings[i][2]
+						etime: meetings[i][2],
+						participants: meetings[i][6]
 					}
 					$("#calendar").fullCalendar('renderEvent', event, stick=true);
 				}
