@@ -179,24 +179,26 @@
                 <form class="form-inline">
                     &nbsp;&nbsp;
                     <div class="form-group">
-                        <label for="sdate">From:&nbsp;</label>
-                        <input type="date" class="form-control" id="sdate" required>
+                        <label for="report_sdate">From:&nbsp;</label>
+                        <input type="date" class="form-control" id="report_sdate" required>
                     </div>
                     &nbsp;&nbsp;
                     <div class="form-group">
-                        <label for="edate">To:&nbsp;</label>
-                        <input type="date" class="form-control" id="edate" required>
+                        <label for="report_edate">To:&nbsp;</label>
+                        <input type="date" class="form-control" id="report_edate" required>
                     </div>
                     <div class="pull-right">
                         &nbsp;&nbsp;
-                        <button type="submit" class="btn btn-default">Show Report</button>
+                        <button id="gen_report" type="button" class="btn btn-default">Show Report</button>
                         &nbsp;&nbsp;
-                        <button type="submit" class="btn btn-default">Download Backup</button>
+                        <button id="gen_backup" type="button" class="btn btn-default">Download Backup</button>
                     </div>
                 </form>
 
+                <a id="downloadAnchorElem" style="display:none"></a>
+                
                 <div id="report">
-
+                    <br><br>
                 </div>
             </div>
 

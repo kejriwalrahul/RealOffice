@@ -16,4 +16,6 @@ urlpatterns = [
     url(r'^person/add/$', views.AddPerson.as_view(), name='add_person'),
 
     url(r'^meeting/add/$', views.AddMeeting.as_view(), name='add_meeting'),
+
+    url(r'^report/$', views.Report.as_view(), name='report'),
 ]

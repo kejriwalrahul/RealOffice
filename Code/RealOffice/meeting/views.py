@@ -68,29 +68,46 @@ class LogOutView(APIView):
 		request.user.auth_token.delete()
 		return Response(status=status.HTTP_200_OK)
 
+def meeting_summary(startdate= datetime.now().date(), enddate= None):
+	meetings = Meeting.objects.filter(stime__gte= startdate)
+	if enddate:
+		meetings.filter(etime__lte= enddate)
+
+	meeting_info = []
+	for meeting in meetings:
+		invitations  = Invitation.objects.filter(meeting= meeting)
+		participants = [invitation.person.name for invitation in invitations]
+
+		meeting_info.append([
+			meeting.name, meeting.stime, meeting.etime, meeting.hostedAt.room, 
+			meeting.organizedBy.name, meeting.ofType.meetingType, ", ".join(participants)])
+
+	return meeting_info
+
 class UserInfo(APIView):
 	permission_classes = (IsAuthenticated,)
 
 	def post(self, request):
-		meetings = Meeting.objects.filter(stime__gte= datetime.now().date())
-
-		meeting_info = []
-		for meeting in meetings:
-			invitations = Invitation.objects.filter(meeting= meeting)
-			participants = [invitation.person.name for invitation in invitations]
-
-			meeting_info.append([
-				meeting.name, meeting.stime, meeting.etime, meeting.hostedAt.room, 
-				meeting.organizedBy.name, meeting.ofType.meetingType, ", ".join(participants)])
-
-
 		res_data = {
 			'user': unicode(request.user),
 			'auth': unicode(request.auth),
-			'meetings': meeting_info
+			'meetings': meeting_summary()
 		}
 
 		return Response(res_data, status=status.HTTP_200_OK)
+
+class Report(APIView):
+	permission_classes = (IsAuthenticated, )
+
+	def post(self, request):
+		if not check_dict(request.data, ['start', 'end']):
+			return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+		res = {
+			'meetings': meeting_summary(request.data['start'], request.data['end'])
+		}
+
+		return Response(res, status=status.HTTP_200_OK)
 
 class CheckPerson(APIView):
 	permission_classes = (IsAuthenticated, )

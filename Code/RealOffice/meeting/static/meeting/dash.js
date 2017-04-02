@@ -350,4 +350,94 @@ $(document).ready(function(){
     	});
     });
 
+    // Generate Report
+    $("#gen_report").on('click', function(){
+    	$.ajax({
+	    	url: '/report/',
+	    	method: 'POST',
+			headers: {
+				Authorization: "token " + my_token,
+			},
+			data: {
+				'start': $("#report_sdate").val(),
+				'end': 	 $("#report_edate").val(), 
+			},
+			success: function(data, textStatus, jqXHR){
+	    		if('error' in data){
+		    		$("#status_heading").html("Error: " + data['error']);
+		    		$('#statusModal').modal('show');
+	    		}
+	    		else{	    		
+	    			var new_table = "<table class='table table-striped table-hover'>";
+	    			new_table += "<tr> \
+	    				<th>Meeting Name</th>\
+	    				<th>Start</th>\
+	    				<th>End</th>\
+	    				<th>Venue</th>\
+	    				<th>Organizer</th>\
+	    				<th>Meeting Type</th>\
+	    				<th>Participants</th>\
+    				</tr>"
+	    			
+	    			for(var i=0; i<data['meetings'].length; i++){
+	    				new_table += "<tr>";
+	    				for(var j=0; j<data['meetings'][i].length; j++){
+	    					new_table += "<td>";
+	    					if(j==1 || j==2)
+	    						new_table += pretty_date(data['meetings'][i][j]);
+	    					else
+	    						new_table += data['meetings'][i][j];
+	    					new_table += "</td>";
+	    				}
+	    				new_table += "</tr>";
+	    			}
+	    			new_table += "</table>"
+	    			$("#report").append(new_table);
+	    		}
+			},
+			error: function(jqXHR, textStatus, errorThrown){
+				console.log("Error!");
+				console.log(errorThrown);
+	    		// $('#loadingModal').modal('hide');
+	    		$("#status_heading").html("Failed to generate report!");
+	    		$('#statusModal').modal('show');
+			}    		    		
+    	});    	
+    });
+
+    // Generate Backup
+    $("#gen_backup").on('click', function(){
+    	$.ajax({
+	    	url: '/report/',
+	    	method: 'POST',
+			headers: {
+				Authorization: "token " + my_token,
+			},
+			data: {
+				'start': $("#report_sdate").val(),
+				'end': 	 $("#report_edate").val(), 
+			},
+			success: function(data, textStatus, jqXHR){
+	    		if('error' in data){
+		    		$("#status_heading").html("Error: " + data['error']);
+		    		$('#statusModal').modal('show');
+	    		}
+	    		else{	    		
+					var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data['meetings']));
+
+					var dlAnchorElem = document.getElementById('downloadAnchorElem');
+					dlAnchorElem.setAttribute("href", dataStr);
+					dlAnchorElem.setAttribute("download", "backup.json");
+					dlAnchorElem.click();
+	    		}
+			},
+			error: function(jqXHR, textStatus, errorThrown){
+				console.log("Error!");
+				console.log(errorThrown);
+	    		// $('#loadingModal').modal('hide');
+	    		$("#status_heading").html("Failed to generate report!");
+	    		$('#statusModal').modal('show');
+			}    		    		
+    	});    	
+    });
 });
