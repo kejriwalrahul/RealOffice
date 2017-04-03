@@ -119,6 +119,11 @@ $(document).ready(function(){
 	    	else
 	    		$('#req_container').html("No Requirements Yet!")
 
+	    	if(event.status == 4)
+	    		$("#reschedule_meeting").css("display", "none")
+	    	else
+	    		$("#reschedule_meeting").css("display", "inline")
+
 	    	$('#viewMeetingModal').modal('show');
 	    }
     });

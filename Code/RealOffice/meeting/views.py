@@ -11,9 +11,12 @@ from rest_framework import status
 
 # Python Libs
 from datetime import datetime
+import re
 
 # Import Models
 from models import * 
+
+email_regex = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
 
 """
 	For checking presence of required keys in incoming requests
@@ -36,11 +39,15 @@ def check_person(person):
 	persons_to_check = person.replace('[','').replace(']','').replace('"','').split(',')
 	for person in persons_to_check:
 		person = person.strip()
+
+		if email_regex.match(person):
+			continue
+
 		people = Person.objects.filter(name=person)
 		if not len(people):
 			res['unknown'].append(person)
 		elif len(people) > 1:
-			res['ambiguous'].append(people)
+			res['ambiguous'].append(people[0].name)
 		else:
 			res['known'].append(people[0])
 
@@ -128,7 +135,9 @@ class CheckPerson(APIView):
 			return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
 		res = check_person(request.data['persons'])
+		print res
 		res.pop('known', None)
+		print res
 
 		return Response(res, status=status.HTTP_200_OK)
 
@@ -262,6 +271,9 @@ class RescheduleMeeting(APIView):
 			return Response({'error': 'Meeting name does not exist!'}, status=status.HTTP_200_OK)
 		else:
 			meeting = meeting[0]
+
+		if meeting.status == 4:
+			return Response({'error': 'Meeting already over!'}, status=status.HTTP_200_OK)
 
 		# Check for clashes
 		clash_meetings_bef = Meeting.objects.filter(hostedAt= meeting.hostedAt, stime__lte= stime, etime__gte= stime)
