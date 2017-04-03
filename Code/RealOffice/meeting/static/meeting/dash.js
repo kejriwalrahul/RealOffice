@@ -345,8 +345,17 @@ $(document).ready(function(){
 		    		$('#new_meeting_organizer').css('box-shadow', '0px 0px 6px green');
 				else{
 		    		$('#new_meeting_organizer').css('box-shadow', '0px 0px 6px red');
-		    		$("#status_heading").html("Unkown Names: " + data['unknown'] + 
-		    			"<br>" + "Ambiguous Names: " + data['ambiguous']);
+		    		
+		    		var err_msg = ""
+		    		if(data['unknown'].length != 0){
+		    			err_msg += "Unkown Names: " + data['unknown'];
+		    		}
+		    		if(data['ambiguous'].length != 0){
+		    			if(data['unknown'].length != 0) err_msg += "<br>";
+		    			err_msg += "Ambiguous Names: " + data['ambiguous'];
+		    		}
+		    		$("#status_heading").html(err_msg);
+		    		
 		    		$('#statusModal').modal('show');
 				}			
 			},
@@ -377,8 +386,17 @@ $(document).ready(function(){
 		    		$('#new_meeting_participants').css('box-shadow', '0px 0px 6px green');
 				else{
 		    		$('#new_meeting_participants').css('box-shadow', '0px 0px 6px red');
-		    		$("#status_heading").html("Unkown Names: " + data['unknown'] + 
-		    			"<br>" + "Ambiguous Names: " + data['ambiguous']);
+
+					var err_msg = ""
+		    		if(data['unknown'].length != 0){
+		    			err_msg += "Unkown Names: " + data['unknown'];
+		    		}
+		    		if(data['ambiguous'].length != 0){
+		    			if(data['unknown'].length != 0) err_msg += "<br>";
+		    			err_msg += "Ambiguous Names: " + data['ambiguous'];
+		    		}
+		    		$("#status_heading").html(err_msg);
+
 		    		$('#statusModal').modal('show');
 				}			
 			},
