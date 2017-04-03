@@ -68,8 +68,12 @@ class LogOutView(APIView):
 		request.user.auth_token.delete()
 		return Response(status=status.HTTP_200_OK)
 
-def meeting_summary(startdate= datetime.now().date(), enddate= None):
-	meetings = Meeting.objects.filter(stime__gte= startdate)
+def meeting_summary(startdate= None, enddate= None):
+	meetings = None
+	if startdate:
+		meetings = Meeting.objects.filter(stime__gte= startdate)
+	else:
+		meetings = Meeting.objects.all()
 	if enddate:
 		meetings.filter(etime__lte= enddate)
 
@@ -81,9 +85,13 @@ def meeting_summary(startdate= datetime.now().date(), enddate= None):
 		requirements = Requirement.objects.filter(prereqFor= meeting)
 		requirements = [[requirement.item, requirement.qty, requirement.cost, requirement.isApproved] for requirement in requirements]
 
+		invitees = Invitation.objects.filter(meeting= meeting, willAttend= True)
+		headcount = len(invitees)
+
 		meeting_info.append([
 			meeting.name, meeting.stime, meeting.etime, meeting.hostedAt.room, 
-			meeting.organizedBy.name, meeting.ofType.meetingType, ", ".join(participants), requirements])
+			meeting.organizedBy.name, meeting.ofType.meetingType, ", ".join(participants), 
+			requirements, headcount, meeting.status, meeting.createdBy.user.username, meeting.createdOn ])
 
 	return meeting_info
 

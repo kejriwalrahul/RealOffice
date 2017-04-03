@@ -77,7 +77,9 @@ $(document).ready(function(){
 	    	$('#view_meeting_end').html(pretty_date(event.etime));
 	    	$('#view_meeting_organizer').html(event.organizer);
 	    	$('#view_meeting_participants').html(event.participants);
-	    	$('#view_meeting_headcount').html();
+	    	$('#view_meeting_headcount').html(event.headcount);
+	    	$('#view_meeting_createdBy').html(event.createdBy);
+	    	$('#view_meeting_createdOn').html(pretty_date(event.createdOn));
 
 	    	var new_table = "<table class='table table-bordered'>";
 	    	new_table += 
@@ -140,7 +142,7 @@ $(document).ready(function(){
 				console.log("Success");
 	    		$('#loadingModal').modal('hide');
 				$("#user").html(data['user']);
-
+				console.log(data);
 				var meetings = data['meetings'];
 				for(var i=0; i<meetings.length; i++){
 					var event = {
@@ -153,8 +155,15 @@ $(document).ready(function(){
 						stime: meetings[i][1],
 						etime: meetings[i][2],
 						participants: meetings[i][6],
-						requirements: meetings[i][7]
+						requirements: meetings[i][7],
+						headcount: meetings[i][8],
+						status: meetings[i][9],
+						createdBy: meetings[i][10],
+						createdOn: meetings[i][11],
 					}
+					if(event.status == 4)
+						event.color = 'green';
+
 					$("#calendar").fullCalendar('renderEvent', event, stick=true);
 				}
 			},
@@ -195,8 +204,16 @@ $(document).ready(function(){
 						stime: meetings[i][1],
 						etime: meetings[i][2],
 						participants: meetings[i][6],
-						requirements: meetings[i][7]
+						requirements: meetings[i][7],
+						headcount: meetings[i][8],
+						status: meetings[i][9],
+						createdBy: meetings[i][10],
+						createdOn: meetings[i][11],
 					}
+
+					if(event.status == 4)
+						event.color = 'green';
+
 					$("#calendar").fullCalendar('renderEvent', event, stick=true);
 				}
 			},
