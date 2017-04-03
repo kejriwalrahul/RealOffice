@@ -11,6 +11,7 @@ from rest_framework import status
 
 # Python Libs
 from datetime import datetime
+from itertools import chain
 import re
 
 # Import Models
@@ -209,7 +210,10 @@ class AddMeeting(APIView):
 		clash_meetings_aft = Meeting.objects.filter(hostedAt= venue, stime__lte= etime, etime__gte= etime)
 		clash_meetings_dur = Meeting.objects.filter(hostedAt= venue, stime__gte= stime, etime__lte= etime)
 		if clash_meetings_bef or clash_meetings_aft or clash_meetings_dur:
-			return Response({'error': 'Meeting Clash!'}, status=status.HTTP_200_OK)
+			clash_meetings = list(chain(clash_meetings_bef, clash_meetings_aft, clash_meetings_dur))
+			clash_meetings = [ [clash.name, clash.stime, clash.etime] for clash in clash_meetings]
+
+			return Response({ 'error': 'Meeting Clash!', 'clash': clash_meetings }, status=status.HTTP_200_OK)
 
 		meeting = Meeting(name= req.data['name'], organizedBy= organizer, hostedAt= venue, 
 						  stime= stime, etime= etime, status= 1, createdBy= req.user.userprofile, 
@@ -256,8 +260,16 @@ class RescheduleMeeting(APIView):
 	permission_classes = (IsAuthenticated, )
 
 	def post(self, request):
-		if not check_dict(request.data, ['name', 'date', 'stime', 'etime']):
+		if not check_dict(request.data, ['name', 'date', 'stime', 'etime', 'venue']):
 			return Response({}, status= status.HTTP_400_BAD_REQUEST)
+
+		# Validate venue
+		venue = None
+		venue_query = Venue.objects.filter(room= request.data['venue'])
+		if not venue_query:
+			return Response({'error': 'Venue unknown!'}, status=status.HTTP_200_OK)
+		else:
+			venue = venue_query[0]
 
 		# Validate Times
 		stime = datetime.strptime(request.data['date'] + " " + request.data['stime'], "%Y-%m-%d %H:%M")
@@ -276,14 +288,18 @@ class RescheduleMeeting(APIView):
 			return Response({'error': 'Meeting already over!'}, status=status.HTTP_200_OK)
 
 		# Check for clashes
-		clash_meetings_bef = Meeting.objects.filter(hostedAt= meeting.hostedAt, stime__lte= stime, etime__gte= stime)
-		clash_meetings_aft = Meeting.objects.filter(hostedAt= meeting.hostedAt, stime__lte= etime, etime__gte= etime)
-		clash_meetings_dur = Meeting.objects.filter(hostedAt= meeting.hostedAt, stime__gte= stime, etime__lte= etime)
+		clash_meetings_bef = Meeting.objects.filter(hostedAt= venue, stime__lte= stime, etime__gte= stime)
+		clash_meetings_aft = Meeting.objects.filter(hostedAt= venue, stime__lte= etime, etime__gte= etime)
+		clash_meetings_dur = Meeting.objects.filter(hostedAt= venue, stime__gte= stime, etime__lte= etime)
 		if clash_meetings_bef or clash_meetings_aft or clash_meetings_dur:
-			return Response({'error': 'Meeting Clash!'}, status=status.HTTP_200_OK)
+			clash_meetings = list(chain(clash_meetings_bef, clash_meetings_aft, clash_meetings_dur))
+			clash_meetings = [ [clash.name, clash.stime, clash.etime] for clash in clash_meetings]
+
+			return Response({ 'error': 'Meeting Clash!', 'clash': clash_meetings }, status=status.HTTP_200_OK)
 
 		meeting.stime = stime
 		meeting.etime = etime
+		meeting.hostedAt = venue
 		meeting.save()
 
 		return Response({}, status= status.HTTP_200_OK)

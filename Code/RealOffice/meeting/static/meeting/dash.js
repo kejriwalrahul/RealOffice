@@ -415,6 +415,13 @@ $(document).ready(function(){
 			success: function(data, textStatus, jqXHR){
 	    		if('error' in data){
 		    		$("#status_heading").html("Error: " + data['error']);
+		    		if('clash' in data){
+		    			for(var k=0; k<data['clash'].length; k++)
+		    				$("#extra_stuff").html("<br> Clashes with " + data['clash'][k][0] + 
+		    					"<br>hosted from " + pretty_date(data['clash'][k][1]) 
+		    					+ " to " + pretty_date(data['clash'][k][2]))
+		    		}
+
 		    		$('#statusModal').modal('show');
 	    		}
 	    		else{
@@ -583,6 +590,7 @@ $(document).ready(function(){
 			},
 			data: {
 				'name': $("#view_meeting_name").html(),
+				'venue': $("#reschedule_meeting_venue").val(),
 				'date': $("#reschedule_meeting_date").val(),
 				'stime': $("#reschedule_meeting_stime").val(),
 				'etime': $("#reschdule_meeting_etime").val()
@@ -590,6 +598,11 @@ $(document).ready(function(){
 			success: function(data, textStatus, jqXHR){
 	    		if('error' in data){
 		    		$("#status_heading").html("Error: " + data['error']);
+		    		if('clash' in data){
+		    			for(var k=0; k<data['clash'].length; k++)
+		    				$("#extra_stuff").html("<br> Clashes with " + data['clash'][k][0] + 
+		    					"<br>hosted from " + pretty_date(data['clash'][k][1]) + " to " + pretty_date(data['clash'][k][2]))
+		    		}
 		    		$('#statusModal').modal('show');
 	    		}
 	    		else{	    			    			
