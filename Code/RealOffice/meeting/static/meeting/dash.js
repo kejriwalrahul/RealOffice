@@ -47,6 +47,7 @@ $(document).ready(function(){
 			},
 			success: function(data, textStatus, jqXHR){
 				if('error' in data){
+					$(this).checked = !$(this).checked;
 			    	$("#status_heading").html("Error: " + data['error']);
 			    	$('#statusModal').modal('show');
 				}
@@ -59,6 +60,7 @@ $(document).ready(function(){
 				console.log("Error!");
 				console.log(errorThrown);
 	    		// $('#loadingModal').modal('hide');
+				$(this).checked = !$(this).checked;
 		    	$("#status_heading").html("Failure in updating approval status!");
 		    	$('#statusModal').modal('show');
 			}

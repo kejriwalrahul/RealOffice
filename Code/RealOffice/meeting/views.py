@@ -34,7 +34,8 @@ def check_person(person):
 	res = {
 		'unknown': [],
 		'ambiguous': [],
-		'known': []
+		'known': [],
+		'emails': []
 	}
 
 	persons_to_check = person.replace('[','').replace(']','').replace('"','').split(',')
@@ -42,6 +43,7 @@ def check_person(person):
 		person = person.strip()
 
 		if email_regex.match(person):
+			res['emails'].append(person)
 			continue
 
 		people = Person.objects.filter(name=person)
@@ -136,9 +138,8 @@ class CheckPerson(APIView):
 			return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
 		res = check_person(request.data['persons'])
-		print res
 		res.pop('known', None)
-		print res
+		res.pop('emails', None)
 
 		return Response(res, status=status.HTTP_200_OK)
 
@@ -149,11 +150,17 @@ class AddPerson(APIView):
 		if not check_dict(request.data, ['name', 'email']):
 			return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
-		if Person.objects.filter(email= request.data['email']):
-			return Response({'error': 'Email already exists'}, status=status.HTTP_200_OK)
-
-		new_person = Person(name= request.data['name'], email= request.data['email'])
-		new_person.save()
+		person_query = Person.objects.filter(email= request.data['email'])
+		if person_query:
+			if person_query[0].name != 'Anonymous':
+				return Response({'error': 'Email already exists'}, status=status.HTTP_200_OK)
+			else: 
+				old_person = person_query[0]
+				old_person.name = request.data['name']
+				old_person.save()
+		else:
+			new_person = Person(name= request.data['name'], email= request.data['email'])
+			new_person.save()
 
 		return Response({}, status=status.HTTP_200_OK)
 
@@ -181,13 +188,35 @@ class AddMeeting(APIView):
 		if len(orgres['unknown']) or len(orgres['ambiguous']):
 			return Response({'error': 'Organizer unknown or ambiguous!'}, status=status.HTTP_200_OK)
 		else:
-			organizer = orgres['known'][0]
+			if (len(orgres['known']) + len(orgres['emails'])) > 1:
+				return Response({'error': 'Multiple Organizers specified!'}, status=status.HTTP_200_OK)
+			
+			if len(orgres['known']):
+				organizer = orgres['known'][0]
+			else:
+				person_query = Person.objects.filter(email=orgres['emails'][0])
+				if person_query:
+					organizer = person_query[0]
+				else:
+					organizer = Person(name= 'Anonymous', email= orgres['emails'][0])
+					organizer.save()
 
 		# Validate participants
 		res = check_person(req.data['participants'])
 		participants = res['known']
 		if len(res['unknown']) or len(res['ambiguous']):
 			return Response({'error': 'Organizer unknown or ambiguous!'}, status=status.HTTP_200_OK)
+		else:
+			if len(res['emails']):
+				for email in res['emails']:
+					person_query = Person.objects.filter(email=email)
+					if person_query:
+						participants.append(person_query[0])
+					else:
+						new_person = Person(name= 'Anonymous', email= email)
+						new_person.save()
+						participants.append(new_person)
+		
 
 		# Validate venue
 		venue = None
@@ -338,6 +367,9 @@ class RequirementApprovalToggle(APIView):
 			return Response({'error': 'Requirement does not exist!'}, status= status.HTTP_200_OK)
 		else:
 			req = req.first()
+
+		if req.prereqFor.status == 4:
+			return Response({'error': 'Meeting Already Over!'}, status= status.HTTP_200_OK)
 
 		req.isApproved = not req.isApproved
 		req.save()
