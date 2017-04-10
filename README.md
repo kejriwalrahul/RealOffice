@@ -1,6 +1,16 @@
 # RealOffice
 Web App to digitize office workflows 
 
-Refer to http://www1.cmc.edu/pages/faculty/DNeedell/papers/ucs_specs.pdf for sample requirements document.
+## Dependencies:
 
-The google doc with requirements specification is at https://docs.google.com/document/d/1yGJQMRAhPnJv8W_ibeNV-sa1CH-PI3ic-daHZ1YiK9M/edit?usp=sharing.
+Please install the following using ```pip```
+
+1. Django v1.10.5
+2. Django REST framework v3.5.4
+3. scheduler 
+
+## Usage:
+
+1. Start the server using ```python manage.py runserver <port_no>``` from the ```Code/RealOffice``` directory
+2. Open ```localhost:<port_no>/``` for the user portal.
+3. Open ```localhost:<port_no>/admin``` for the admin portal.

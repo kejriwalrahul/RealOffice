@@ -47,6 +47,7 @@ $(document).ready(function(){
 			},
 			success: function(data, textStatus, jqXHR){
 				if('error' in data){
+					$(this).checked = !$(this).checked;
 			    	$("#status_heading").html("Error: " + data['error']);
 			    	$('#statusModal').modal('show');
 				}
@@ -59,6 +60,7 @@ $(document).ready(function(){
 				console.log("Error!");
 				console.log(errorThrown);
 	    		// $('#loadingModal').modal('hide');
+				$(this).checked = !$(this).checked;
 		    	$("#status_heading").html("Failure in updating approval status!");
 		    	$('#statusModal').modal('show');
 			}
@@ -77,7 +79,9 @@ $(document).ready(function(){
 	    	$('#view_meeting_end').html(pretty_date(event.etime));
 	    	$('#view_meeting_organizer').html(event.organizer);
 	    	$('#view_meeting_participants').html(event.participants);
-	    	$('#view_meeting_headcount').html();
+	    	$('#view_meeting_headcount').html(event.headcount);
+	    	$('#view_meeting_createdBy').html(event.createdBy);
+	    	$('#view_meeting_createdOn').html(pretty_date(event.createdOn));
 
 	    	var new_table = "<table class='table table-bordered'>";
 	    	new_table += 
@@ -117,6 +121,11 @@ $(document).ready(function(){
 	    	else
 	    		$('#req_container').html("No Requirements Yet!")
 
+	    	if(event.status == 4)
+	    		$("#reschedule_meeting").css("display", "none")
+	    	else
+	    		$("#reschedule_meeting").css("display", "inline")
+
 	    	$('#viewMeetingModal').modal('show');
 	    }
     });
@@ -153,8 +162,15 @@ $(document).ready(function(){
 						stime: meetings[i][1],
 						etime: meetings[i][2],
 						participants: meetings[i][6],
-						requirements: meetings[i][7]
+						requirements: meetings[i][7],
+						headcount: meetings[i][8],
+						status: meetings[i][9],
+						createdBy: meetings[i][10],
+						createdOn: meetings[i][11],
 					}
+					if(event.status == 4)
+						event.color = 'green';
+
 					$("#calendar").fullCalendar('renderEvent', event, stick=true);
 				}
 				var reminders = data['reminders'];
@@ -207,8 +223,16 @@ $(document).ready(function(){
 						stime: meetings[i][1],
 						etime: meetings[i][2],
 						participants: meetings[i][6],
-						requirements: meetings[i][7]
+						requirements: meetings[i][7],
+						headcount: meetings[i][8],
+						status: meetings[i][9],
+						createdBy: meetings[i][10],
+						createdOn: meetings[i][11],
 					}
+
+					if(event.status == 4)
+						event.color = 'green';
+
 					$("#calendar").fullCalendar('renderEvent', event, stick=true);
 				}
 			},
@@ -335,8 +359,17 @@ $(document).ready(function(){
 		    		$('#new_meeting_organizer').css('box-shadow', '0px 0px 6px green');
 				else{
 		    		$('#new_meeting_organizer').css('box-shadow', '0px 0px 6px red');
-		    		$("#status_heading").html("Unkown Names: " + data['unknown'] + 
-		    			"<br>" + "Ambiguous Names: " + data['ambiguous']);
+		    		
+		    		var err_msg = ""
+		    		if(data['unknown'].length != 0){
+		    			err_msg += "Unkown Names: " + data['unknown'];
+		    		}
+		    		if(data['ambiguous'].length != 0){
+		    			if(data['unknown'].length != 0) err_msg += "<br>";
+		    			err_msg += "Ambiguous Names: " + data['ambiguous'];
+		    		}
+		    		$("#status_heading").html(err_msg);
+		    		
 		    		$('#statusModal').modal('show');
 				}			
 			},
@@ -367,8 +400,17 @@ $(document).ready(function(){
 		    		$('#new_meeting_participants').css('box-shadow', '0px 0px 6px green');
 				else{
 		    		$('#new_meeting_participants').css('box-shadow', '0px 0px 6px red');
-		    		$("#status_heading").html("Unkown Names: " + data['unknown'] + 
-		    			"<br>" + "Ambiguous Names: " + data['ambiguous']);
+
+					var err_msg = ""
+		    		if(data['unknown'].length != 0){
+		    			err_msg += "Unkown Names: " + data['unknown'];
+		    		}
+		    		if(data['ambiguous'].length != 0){
+		    			if(data['unknown'].length != 0) err_msg += "<br>";
+		    			err_msg += "Ambiguous Names: " + data['ambiguous'];
+		    		}
+		    		$("#status_heading").html(err_msg);
+
 		    		$('#statusModal').modal('show');
 				}			
 			},
@@ -405,6 +447,13 @@ $(document).ready(function(){
 			success: function(data, textStatus, jqXHR){
 	    		if('error' in data){
 		    		$("#status_heading").html("Error: " + data['error']);
+		    		if('clash' in data){
+		    			for(var k=0; k<data['clash'].length; k++)
+		    				$("#extra_stuff").html("<br> Clashes with " + data['clash'][k][0] + 
+		    					"<br>hosted from " + pretty_date(data['clash'][k][1]) 
+		    					+ " to " + pretty_date(data['clash'][k][2]))
+		    		}
+
 		    		$('#statusModal').modal('show');
 	    		}
 	    		else{
@@ -576,6 +625,7 @@ $(document).ready(function(){
 			},
 			data: {
 				'name': $("#view_meeting_name").html(),
+				'venue': $("#reschedule_meeting_venue").val(),
 				'date': $("#reschedule_meeting_date").val(),
 				'stime': $("#reschedule_meeting_stime").val(),
 				'etime': $("#reschdule_meeting_etime").val()
@@ -583,6 +633,11 @@ $(document).ready(function(){
 			success: function(data, textStatus, jqXHR){
 	    		if('error' in data){
 		    		$("#status_heading").html("Error: " + data['error']);
+		    		if('clash' in data){
+		    			for(var k=0; k<data['clash'].length; k++)
+		    				$("#extra_stuff").html("<br> Clashes with " + data['clash'][k][0] + 
+		    					"<br>hosted from " + pretty_date(data['clash'][k][1]) + " to " + pretty_date(data['clash'][k][2]))
+		    		}
 		    		$('#statusModal').modal('show');
 	    		}
 	    		else{	    			    			

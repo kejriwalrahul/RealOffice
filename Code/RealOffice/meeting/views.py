@@ -12,8 +12,12 @@ from rest_framework import status
 # Python Libs
 from datetime import datetime
 from django.utils import timezone
+from itertools import chain
+import re
 # Import Models
 from models import * 
+
+email_regex = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
 
 """
 	For checking presence of required keys in incoming requests
@@ -30,17 +34,23 @@ def check_person(person):
 	res = {
 		'unknown': [],
 		'ambiguous': [],
-		'known': []
+		'known': [],
+		'emails': []
 	}
 
 	persons_to_check = person.replace('[','').replace(']','').replace('"','').split(',')
 	for person in persons_to_check:
 		person = person.strip()
+
+		if email_regex.match(person):
+			res['emails'].append(person)
+			continue
+
 		people = Person.objects.filter(name=person)
 		if not len(people):
 			res['unknown'].append(person)
 		elif len(people) > 1:
-			res['ambiguous'].append(people)
+			res['ambiguous'].append(people[0].name)
 		else:
 			res['known'].append(people[0])
 
@@ -88,8 +98,12 @@ class LogOutView(APIView):
 		request.user.auth_token.delete()
 		return Response(status=status.HTTP_200_OK)
 
-def meeting_summary(startdate= datetime.now().date(), enddate= None):
-	meetings = Meeting.objects.filter(stime__gte= startdate)
+def meeting_summary(startdate= None, enddate= None):
+	meetings = None
+	if startdate:
+		meetings = Meeting.objects.filter(stime__gte= startdate)
+	else:
+		meetings = Meeting.objects.all()
 	if enddate:
 		meetings.filter(etime__lte= enddate)
 
@@ -104,9 +118,13 @@ def meeting_summary(startdate= datetime.now().date(), enddate= None):
 		requirements = Requirement.objects.filter(prereqFor= meeting)
 		requirements = [[requirement.item, requirement.qty, requirement.cost, requirement.isApproved] for requirement in requirements]
 
+		invitees = Invitation.objects.filter(meeting= meeting, willAttend= True)
+		headcount = len(invitees)
+
 		meeting_info.append([
 			meeting.name, meeting.stime, meeting.etime, meeting.hostedAt.room, 
-			meeting.organizedBy.name, meeting.ofType.meetingType, ", ".join(participants), requirements])
+			meeting.organizedBy.name, meeting.ofType.meetingType, ", ".join(participants), 
+			requirements, headcount, meeting.status, meeting.createdBy.user.username, meeting.createdOn ])
 
 	return meeting_info
 
@@ -146,6 +164,7 @@ class CheckPerson(APIView):
 
 		res = check_person(request.data['persons'])
 		res.pop('known', None)
+		res.pop('emails', None)
 
 		return Response(res, status=status.HTTP_200_OK)
 
@@ -156,11 +175,17 @@ class AddPerson(APIView):
 		if not check_dict(request.data, ['name', 'email']):
 			return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
-		if Person.objects.filter(email= request.data['email']):
-			return Response({'error': 'Email already exists'}, status=status.HTTP_200_OK)
-
-		new_person = Person(name= request.data['name'], email= request.data['email'])
-		new_person.save()
+		person_query = Person.objects.filter(email= request.data['email'])
+		if person_query:
+			if person_query[0].name != 'Anonymous':
+				return Response({'error': 'Email already exists'}, status=status.HTTP_200_OK)
+			else: 
+				old_person = person_query[0]
+				old_person.name = request.data['name']
+				old_person.save()
+		else:
+			new_person = Person(name= request.data['name'], email= request.data['email'])
+			new_person.save()
 
 		return Response({}, status=status.HTTP_200_OK)
 
@@ -188,13 +213,35 @@ class AddMeeting(APIView):
 		if len(orgres['unknown']) or len(orgres['ambiguous']):
 			return Response({'error': 'Organizer unknown or ambiguous!'}, status=status.HTTP_200_OK)
 		else:
-			organizer = orgres['known'][0]
+			if (len(orgres['known']) + len(orgres['emails'])) > 1:
+				return Response({'error': 'Multiple Organizers specified!'}, status=status.HTTP_200_OK)
+			
+			if len(orgres['known']):
+				organizer = orgres['known'][0]
+			else:
+				person_query = Person.objects.filter(email=orgres['emails'][0])
+				if person_query:
+					organizer = person_query[0]
+				else:
+					organizer = Person(name= 'Anonymous', email= orgres['emails'][0])
+					organizer.save()
 
 		# Validate participants
 		res = check_person(req.data['participants'])
 		participants = res['known']
 		if len(res['unknown']) or len(res['ambiguous']):
 			return Response({'error': 'Organizer unknown or ambiguous!'}, status=status.HTTP_200_OK)
+		else:
+			if len(res['emails']):
+				for email in res['emails']:
+					person_query = Person.objects.filter(email=email)
+					if person_query:
+						participants.append(person_query[0])
+					else:
+						new_person = Person(name= 'Anonymous', email= email)
+						new_person.save()
+						participants.append(new_person)
+		
 
 		# Validate venue
 		venue = None
@@ -217,7 +264,10 @@ class AddMeeting(APIView):
 		clash_meetings_aft = Meeting.objects.filter(hostedAt= venue, stime__lte= etime, etime__gte= etime)
 		clash_meetings_dur = Meeting.objects.filter(hostedAt= venue, stime__gte= stime, etime__lte= etime)
 		if clash_meetings_bef or clash_meetings_aft or clash_meetings_dur:
-			return Response({'error': 'Meeting Clash!'}, status=status.HTTP_200_OK)
+			clash_meetings = list(chain(clash_meetings_bef, clash_meetings_aft, clash_meetings_dur))
+			clash_meetings = [ [clash.name, clash.stime, clash.etime] for clash in clash_meetings]
+
+			return Response({ 'error': 'Meeting Clash!', 'clash': clash_meetings }, status=status.HTTP_200_OK)
 
 		meeting = Meeting(name= req.data['name'], organizedBy= organizer, hostedAt= venue, 
 						  stime= stime, etime= etime, status= 1, createdBy= req.user.userprofile, 
@@ -264,8 +314,16 @@ class RescheduleMeeting(APIView):
 	permission_classes = (IsAuthenticated, )
 
 	def post(self, request):
-		if not check_dict(request.data, ['name', 'date', 'stime', 'etime']):
+		if not check_dict(request.data, ['name', 'date', 'stime', 'etime', 'venue']):
 			return Response({}, status= status.HTTP_400_BAD_REQUEST)
+
+		# Validate venue
+		venue = None
+		venue_query = Venue.objects.filter(room= request.data['venue'])
+		if not venue_query:
+			return Response({'error': 'Venue unknown!'}, status=status.HTTP_200_OK)
+		else:
+			venue = venue_query[0]
 
 		# Validate Times
 		stime = datetime.strptime(request.data['date'] + " " + request.data['stime'], "%Y-%m-%d %H:%M")
@@ -280,15 +338,22 @@ class RescheduleMeeting(APIView):
 		else:
 			meeting = meeting[0]
 
+		if meeting.status == 4:
+			return Response({'error': 'Meeting already over!'}, status=status.HTTP_200_OK)
+
 		# Check for clashes
-		clash_meetings_bef = Meeting.objects.filter(hostedAt= meeting.hostedAt, stime__lte= stime, etime__gte= stime)
-		clash_meetings_aft = Meeting.objects.filter(hostedAt= meeting.hostedAt, stime__lte= etime, etime__gte= etime)
-		clash_meetings_dur = Meeting.objects.filter(hostedAt= meeting.hostedAt, stime__gte= stime, etime__lte= etime)
+		clash_meetings_bef = Meeting.objects.filter(hostedAt= venue, stime__lte= stime, etime__gte= stime)
+		clash_meetings_aft = Meeting.objects.filter(hostedAt= venue, stime__lte= etime, etime__gte= etime)
+		clash_meetings_dur = Meeting.objects.filter(hostedAt= venue, stime__gte= stime, etime__lte= etime)
 		if clash_meetings_bef or clash_meetings_aft or clash_meetings_dur:
-			return Response({'error': 'Meeting Clash!'}, status=status.HTTP_200_OK)
+			clash_meetings = list(chain(clash_meetings_bef, clash_meetings_aft, clash_meetings_dur))
+			clash_meetings = [ [clash.name, clash.stime, clash.etime] for clash in clash_meetings]
+
+			return Response({ 'error': 'Meeting Clash!', 'clash': clash_meetings }, status=status.HTTP_200_OK)
 
 		meeting.stime = stime
 		meeting.etime = etime
+		meeting.hostedAt = venue
 		meeting.save()
 
 		return Response({}, status= status.HTTP_200_OK)
@@ -328,6 +393,9 @@ class RequirementApprovalToggle(APIView):
 			return Response({'error': 'Requirement does not exist!'}, status= status.HTTP_200_OK)
 		else:
 			req = req.first()
+
+		if req.prereqFor.status == 4:
+			return Response({'error': 'Meeting Already Over!'}, status= status.HTTP_200_OK)
 
 		req.isApproved = not req.isApproved
 		req.save()
