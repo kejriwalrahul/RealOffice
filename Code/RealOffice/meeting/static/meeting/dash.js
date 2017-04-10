@@ -641,5 +641,9 @@ $(document).ready(function(){
 	    		$('#statusModal').modal('show');
 			}    		    		
     	});   
-    });	
+    });
+
+    $('#statusModal').on('hidden.bs.modal', function () {
+		$('#extra_stuff').html('');
+	});	
 });
