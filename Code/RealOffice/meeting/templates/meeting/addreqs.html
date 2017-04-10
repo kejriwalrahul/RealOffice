@@ -9,7 +9,7 @@
     <script type="text/javascript" src="{% static 'meeting/bootstrap.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'meeting/moment.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'meeting/fullcalendar.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'meeting/dash.js' %}"></script>
+    <script type="text/javascript" src="{% static 'meeting/addreqs.js' %}"></script>
 
     <style>
         .reminder{
@@ -66,7 +66,7 @@
             <a class="navbar-brand" href="/">RealOffice</a>
         </div>
         <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Dashboard</a></li>
+            <li class="active"><a href="/dash/">Dashboard</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
             <li><a id="logout"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Log Out</a></li>
@@ -84,142 +84,87 @@
     
     <div class="panel-body">
         <ul class="nav nav-tabs">
-            <li class="active">
-                <a id="homelink" data-toggle="tab" href="#homeTab"><span class="glyphicon glyphicon-home" style="margin-right:5px;"></span>Home</a>
+            <li  class="active">
+                <a data-toggle="tab" href="#addRequirementsTab"><span class="glyphicon glyphicon-plus" style="margin-right:5px;"></span>Requirements</a>
             </li>
-            <li>
-                <a data-toggle="tab" href="#addMeetingTab"><span class="glyphicon glyphicon-plus" style="margin-right:5px;"></span>Add Meetings</a>
-            </li>
-            <li>
-                <a data-toggle="tab" href="#addPersonTab"><span class="glyphicon glyphicon-plus"></span><span class="glyphicon glyphicon-user" style="margin-right:5px;"></span>Add Person</a>
-            </li>
-            <li>
-                <a data-toggle="tab" href="#ReportTab"><span class="glyphicon glyphicon-paperclip" style="margin-right:5px;"></span>Reports/Backups</a>
-            </li>
-            <li class="pull-right">
-                <a id='settingLink' data-toggle="tab" href="#settingsTab"><span class="glyphicon glyphicon-wrench" style="margin-right:5px;"></span>Settings</a>
+            <li style="display:none" id="reminderId">
+
+                <a data-toggle="tab" href="#addRemindersTab"><span class="glyphicon glyphicon-plus"></span><span class="glyphicon glyphicon-user" style="margin-right:5px;"></span>Reminders</a>
             </li>
         </ul>
 
         <div class="tab-content">
-            <div id="homeTab" class="tab-pane fade in active">
+            <div id="addRequirementsTab" class="tab-pane fade in active">
                 <br>
-                <div id='calendar'></div>
-            </div>
-
-            <div id="addMeetingTab" class="tab-pane fade">
-                <br>
-                <form class="">
-                    <div class="form-group col-md-6" style="padding-left: 0px;">
-                        <label for="new_meeting_name">Meeting Name:&nbsp;</label>
-                        <input type="text" class="form-control" id="new_meeting_name" required>
-                    </div>
-                    <div class="form-group col-md-6" style="padding-right: 0px;">
-                        <label for="new_meeting_organizer">Organizer:&nbsp;</label>
-                        <input type="text" class="form-control" id="new_meeting_organizer" required>
-                    </div>                  
-                    <div class="form-group col-md-6" style="padding-left: 0px;">
-                        <label for="new_meeting_venue">Venue:&nbsp;</label>
-                        <select class="form-control" id="new_meeting_venue" required>
-                            {% for venue in venues %}
-                            <option>{{ venue.room }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>                                        
-                    <div class="form-group col-md-6" style="padding-right: 0px;">
-                        <label for="new_meeting_participants">Participants:&nbsp;</label>
-                        <input type="text" class="form-control" id="new_meeting_participants" required>
-                    </div>                                                            
-                    <div class="form-group col-md-4" style="padding-left: 0px;">
-                        <label for="new_meeting_date">Date:&nbsp;</label>
-                        <input type="date" class="form-control" id="new_meeting_date" required>
-                    </div>
-                    <div class="form-group col-md-4">
-                        <label for="new_meeting_stime">Start Time:&nbsp;</label>
-                        <input type="time" class="form-control" id="new_meeting_stime" required>
-                    </div>
-                    <div class="form-group col-md-4"  style="padding-right: 0px;">
-                        <label for="new_meeting_etime">End Time:&nbsp;</label>
-                        <input type="time" class="form-control" id="new_meeting_etime" required>
-                    </div>
-                    <div class="form-group col-md-12" style="padding-left: 0px;">
-                        <label for="new_meeting_workflow">Meeting Workflow:&nbsp;</label>
-                        <select type="text" class="form-control" id="new_meeting_workflow" required>
-                        {% for type in meetingWorkflows %}
-                            <option>{{ type.meetingType }}</option>
+                {% if requirements|length > 0 %}
+                <div>
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>Item</th>
+                          <th>Quantity</th>
+                          <th>Cost</th>
+                          <th>Approved</th>
+                          <th>Details</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for requirement in requirements %}
+                        <tr>
+                          <td>{{requirement.item}}</td>
+                          <td>{{requirement.qty}}</td>
+                          <td>{{requirement.cost}}</td>
+                          <td>{{requirement.isApproved}}</td>
+                          <td>{{requirement.orderDetails}}</td>
+                        </tr>
                         {% endfor %}
-                        </select>
-                    </div>
-                    <!-- <div class="form-group col-md-6" style="padding-left: 0px;">
-                        <label for="new_meeting_reminders">Custom Reminders:&nbsp;</label>
-                        <input type="text" class="form-control" id="new_meeting_reminders" required>
-                        &nbsp;
-                    </div> -->
-                    <br>
-                    <button id="addMeetingBtn" type="button" class="btn btn-default">Add Meeting</button>
-                </form>
-            </div>
-
-            <div id="addPersonTab" class="tab-pane fade in">
-                <br>
+                      </tbody>
+                    </table>
+                </div>
+                {% endif %}
                 <div>
                     <div class="form-group">
-                        <label for="new_person_name">Name:</label>
-                        <input type="text" class="form-control" id="new_person_name" required>
+                        <label for="new_person_item">Item:</label>
+                        <input type="text" class="form-control" id="new_person_item" required>
                     </div>
                     <div class="form-group">
-                        <label for="new_person_email">Email:</label>
-                        <input type="email" class="form-control" id="new_person_email" required>
+                        <label for="new_person_qty">Quantity:</label>
+                        <input type="text" class="form-control" id="new_person_qty" required>
                     </div>
-                    <button id="add_new_person" class="btn btn-default">Add Person</button>
-                </div>                
-            </div>
+                    <div class="form-group">
+                        <label for="new_person_cost">Cost:</label>
+                        <input type="text" class="form-control" id="new_person_cost" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="orderDetails">Order details:</label>
+                        <input type="text" class="form-control" id="orderDetails" required>
+                    </div>
 
-            <div id="ReportTab" class="tab-pane fade">
-                <br>
-                <form class="form-inline">
-                    &nbsp;&nbsp;
-                    <div class="form-group">
-                        <label for="report_sdate">From:&nbsp;</label>
-                        <input type="date" class="form-control" id="report_sdate" required>
-                    </div>
-                    &nbsp;&nbsp;
-                    <div class="form-group">
-                        <label for="report_edate">To:&nbsp;</label>
-                        <input type="date" class="form-control" id="report_edate" required>
-                    </div>
-                    <div class="pull-right">
-                        &nbsp;&nbsp;
-                        <button id="gen_report" type="button" class="btn btn-default">Show Report</button>
-                        &nbsp;&nbsp;
-                        <button id="gen_backup" type="button" class="btn btn-default">Download Backup</button>
-                    </div>
-                </form>
-
-                <a id="downloadAnchorElem" style="display:none"></a>
-                
-                <div id="report">
-                    <br><br>
+                    <button id="add_new_requirement" class="btn btn-default">Add Requirement</button>
                 </div>
             </div>
-
-            <div id="settingsTab" class="tab-pane fade">
+            <div id="addRemindersTab" class="tab-pane fade">
                 <br>
                 <div>
                     <div class="form-group">
-                        <label for="oldpwd">Old Password:</label>
-                        <input type="password" class="form-control" id="oldpwd" required>
+                        <label for="new_person_recipient">Receiver:</label>
+                        <input type="text" class="form-control" id="new_person_recipient" required>
                     </div>
                     <div class="form-group">
-                        <label for="newpwd">New Password:</label>
-                        <input type="password" class="form-control" id="newpwd" required>
+                        <label for="new_person_type">Staff?:</label>
+                        <input type="checkbox" id="new_person_type" checked="">
                     </div>
                     <div class="form-group">
-                        <label for="confirmpwd">Confirm Password:</label>
-                        <input type="password" class="form-control" id="confirmpwd" required>
+                        <label for="new_person_purpose">Purpose:</label>
+                        <input type="text" class="form-control" placeholder="Ex. Check projector placement"id="new_person_purpose" required>
                     </div>
-                    <button id="change_password" class="btn btn-default">Submit</button>
-                </div>                
+                    <!-- <div class="form-group">
+                        <label for="remindTime">Time to remind:</label>
+                        <input type="text" class="form-control" id="remindTime" required>
+                    </div> -->
+
+                    <button id="add_new_reminder" class="btn btn-default">Add Reminder</button>
+                </div>
             </div>
         </div>
     </div>
@@ -227,18 +172,22 @@
 </div>
 
 <!-- Reminders Panel -->
-<div class="col-md-3">
+<!-- <div class="col-md-3">
 <div class="panel panel-default" style="height: 88vh; margin-bottom: 0px;">
     <div class="panel-heading"><span class="glyphicon glyphicon-list-alt"></span>&nbsp;Reminders</div>
     
     <div class="panel-body" style="padding-top: 0px;">
-        <div id="try_rwrapper" class="reminder-wrapper">
-            
+        {% for reminder in reminders %}
+        <div class="reminder-wrapper">
+            <div class="reminder">
+                {{reminder.purpose}} of {{reminder.notificationsFor.name}}
+            </div>
         </div>
+        {% endfor %}
     </div>
 </div>
 </div>
-
+ -->
 <!-- Temp Modal triggers -->
 <div class="col-md-12" style="display: none">
 <div class="panel panel-default" style="margin-top: 10px;margin-bottom: 10px;">
@@ -332,7 +281,6 @@
         <div class="modal-footer">
             <button id="del_meeting" type="button" class="btn btn-danger pull-left">Delete</button>
             <button id="reschedule_meeting" type="button" class="btn btn-info pull-left">Reschedule</button>
-            <button id="add_requirements" type="button" class="btn btn-warning pull-left">Add Requirements/Reminders</button>
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         
             <div id="reschdule_form" style="display: none">

@@ -97,21 +97,37 @@ class Invitation(models.Model):
 		self.token = hasher.hexdigest()
 		print self.token
 		print type(self.token)
+		from django.template.loader import render_to_string
+		from django.core.mail import EmailMessage
 		mail_obj = {}
 		meeting = self.meeting
-		mail_obj['subject'] = 'Invitation to '+meeting.name
-		mail_obj['message'] = 'Hello! You are cordially invited to '+ str(meeting.ofType) +' '+str(meeting.name) \
-		+ ' organized by '+ str(meeting.organizedBy) +' set up at '+str(meeting.hostedAt)+' starting ' +str(meeting.stime)+' ending '\
-		+ str(meeting.etime) + '\n\nTo accept invite, please click the url below http://localhost:8000/api/invitation/accept/?person='+str(self.person.id)+'meeting='+str(meeting.id)+'&token='\
-		+ str(self.token) 
-		mail_obj['sendermail'] = meeting.organizedBy.email
+		mail_obj['subject'] = 'RealOffice: Invitation to '+meeting.name
+		mail_obj['message'] = render_to_string('invitee_mail.html', {'meeting': meeting, 'invitation':self, 'person':self.person})
+		mail_obj['sendermail'] = 'realofficemailer@gmail.com'
 		mail_obj['receiver'] = self.person.email
-		
-		send_mail(
+		msg = EmailMessage(
 		    mail_obj['subject'],
 		    mail_obj['message'],
-		    mail_obj['sendermail'],
-		    [mail_obj['receiver']],
-		    fail_silently=False,
+		    from_email=mail_obj['sendermail'],
+		    to=[mail_obj['receiver']]
 		)
+		msg.content_subtype = 'html'
+		msg.send()
+		# mail_obj = {}
+		# meeting = self.meeting
+		# mail_obj['subject'] = 'Invitation to '+meeting.name
+		# mail_obj['message'] = 'Hello! You are cordially invited to '+ str(meeting.ofType) +' '+str(meeting.name) \
+		# + ' organized by '+ str(meeting.organizedBy) +' set up at '+str(meeting.hostedAt)+' starting ' +str(meeting.stime)+' ending '\
+		# + str(meeting.etime) + '\n\nTo accept invite, please click the url below http://localhost:8000/api/invitation/accept/?person='+str(self.person.id)+'meeting='+str(meeting.id)+'&token='\
+		# + str(self.token) 
+		# mail_obj['sendermail'] = meeting.organizedBy.email
+		# mail_obj['receiver'] = self.person.email
+		
+		# send_mail(
+		#     mail_obj['subject'],
+		#     mail_obj['message'],
+		#     mail_obj['sendermail'],
+		#     [mail_obj['receiver']],
+		#     fail_silently=False,
+		# )
 		super(Invitation, self).save()

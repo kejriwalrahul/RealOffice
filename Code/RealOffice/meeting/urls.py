@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^logout/$', views.LogOutView.as_view(), name='signout'),
     
     url(r'^dash/$', views.dashboard, name='dashboard'),
+    url(r'^meeting/requirements/$', views.requirement, name='requirements'),
     
     url(r'^user/usrdash/$', views.UserInfo.as_view(), name='usrinfo'),
     url(r'^user/change_pass/$', views.ChangePassword.as_view(), name='change_password'),
@@ -23,4 +24,6 @@ urlpatterns = [
     url(r'^report/$', views.Report.as_view(), name='report'),
 
     url(r'^requirement/toggle/$', views.RequirementApprovalToggle.as_view(), name='requirement_toggle'),
+    url(r'^requirement/add/$', views.RequirementAdd.as_view(), name='requirement_add'),
+    url(r'^reminder/add/$', views.ReminderAdd.as_view(), name='reminder_add'),
 ]

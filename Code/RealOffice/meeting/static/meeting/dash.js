@@ -1,5 +1,5 @@
 $(document).ready(function(){
-	var my_token = window.localStorage.getItem("token");
+	var my_token = window.localStorage.getItem("realoffice_token");
 	var monthNames = [
 	    "January", "February", "March",
 	    "April", "May", "June", "July",
@@ -140,7 +140,7 @@ $(document).ready(function(){
 				console.log("Success");
 	    		$('#loadingModal').modal('hide');
 				$("#user").html(data['user']);
-
+				window.localStorage.username = data['user'];
 				var meetings = data['meetings'];
 				for(var i=0; i<meetings.length; i++){
 					var event = {
@@ -157,6 +157,18 @@ $(document).ready(function(){
 					}
 					$("#calendar").fullCalendar('renderEvent', event, stick=true);
 				}
+				var reminders = data['reminders'];
+				console.log(reminders);
+				var element = "";
+				for(var i=0;i<reminders.length;i++){
+					console.log(reminders[i])
+					element += '<div class="reminder">';
+					element += reminders[i][0] + ' of ' + reminders[i][1];
+					element += '</div>';
+					console.log(element);
+				}
+				$('#try_rwrapper').html(element);
+
 			},
 			error: function(jqXHR, textStatus, errorThrown){
 				console.log("Error!");
@@ -550,6 +562,9 @@ $(document).ready(function(){
 	    	$("#reschdule_form").css("display", "inline");
     	else
 	    	$("#reschdule_form").css("display", "none");
+    });
+    $("#add_requirements").on("click", function(){
+    	window.location.href = '/meeting/requirements/?meeting='+$("#view_meeting_name").html();
     });
 
     $("#update_reschedule").on("click", function(){

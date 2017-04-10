@@ -11,7 +11,7 @@ from rest_framework import status
 
 # Python Libs
 from datetime import datetime
-
+from django.utils import timezone
 # Import Models
 from models import * 
 
@@ -53,12 +53,32 @@ def loginpage(request):
 
 
 def dashboard(request):
+	permission_classes = (IsAuthenticated, )
+	print request.user
+	reminders = Reminder.objects.filter(recipient=request.user)
+	print len(reminders)
 	context = {
 		'username': request.user,
 		'venues': Venue.objects.all(),
-		'meetingWorkflows': MeetingWorkflow.objects.all()
+		'meetingWorkflows': MeetingWorkflow.objects.all(),
+		'reminders' : reminders
 	}
 	return render(request, 'meeting/dash.html', context)
+
+def requirement(request):
+	meeting_name = request.GET['meeting']
+	print meeting_name, request.user
+	meeting = Meeting.objects.get(name=meeting_name)
+	reminders = Reminder.objects.filter(recipient=request.user)
+	print 'anon', request.user, str(request.user) == 'AnonymousUser'
+	context = {
+		'username': request.user,
+		'meeting': meeting,
+		'requirements':Requirement.objects.filter(prereqFor=meeting.id),
+		'reminders' : reminders,
+		'isAuthenticated' : str(request.user) != 'AnonymousUser'
+	}
+	return render(request, 'meeting/addreqs.html', context)
 
 
 class LogOutView(APIView):
@@ -75,6 +95,9 @@ def meeting_summary(startdate= datetime.now().date(), enddate= None):
 
 	meeting_info = []
 	for meeting in meetings:
+		if meeting.etime < timezone.now() :
+			meeting.status = 4
+			meeting.save()
 		invitations  = Invitation.objects.filter(meeting= meeting)
 		participants = [invitation.person.name for invitation in invitations]
 
@@ -91,10 +114,12 @@ class UserInfo(APIView):
 	permission_classes = (IsAuthenticated,)
 
 	def post(self, request):
+		print [[r.purpose, r.notificationsFor.name] for r in Reminder.objects.filter(recipient=request.user)]
 		res_data = {
 			'user': unicode(request.user),
 			'auth': unicode(request.auth),
-			'meetings': meeting_summary()
+			'meetings': meeting_summary(),
+			'reminders': [[r.purpose, r.notificationsFor.name] for r in Reminder.objects.filter(recipient=request.user)]
 		}
 
 		return Response(res_data, status=status.HTTP_200_OK)
@@ -210,7 +235,7 @@ class AddMeeting(APIView):
 		msg = EmailMessage(
 		    mail_obj['subject'],
 		    mail_obj['message'],
-		    from_email=mail_obj['sendermail'],
+		    from_email='realofficemailer@gmail.com',
 		    to=[mail_obj['receiver']]
 		)
 		msg.content_subtype = 'html'
@@ -288,6 +313,7 @@ class AcceptInvitation(APIView):
 	def get(self, request):
 		from django.http import HttpResponse
 		Invitation.objects.filter(token=request.GET['token']).update(willAttend=True)
+		print len(Invitation.objects.filter(token=request.GET['token'], willAttend=True))
 		return HttpResponse("<h1>Invite Accepted! Thank you for the response!</h1>")
 
 class RequirementApprovalToggle(APIView):
@@ -307,3 +333,27 @@ class RequirementApprovalToggle(APIView):
 		req.save()
 
 		return Response({}, status= status.HTTP_200_OK)
+
+
+class RequirementAdd(APIView):
+	# permission_classes = (IsAuthenticated, )
+	def post(self, request):
+		dat = request.data
+		meeting = Meeting.objects.get(name=dat['prereqFor'])
+		# Requirement.objects.create(*(request.data))
+		r = Requirement(item=dat['item'], qty=dat['qty'], cost=dat['cost'], prereqFor=meeting, orderDetails=dat['orderDetails'], isApproved=False)
+		r.save()
+		return Response(status=status.HTTP_200_OK)
+
+class ReminderAdd(APIView):
+	permission_classes = (IsAuthenticated, )
+	def post(self, request):
+		dat = request.data
+		meeting = Meeting.objects.get(name=dat['notificationsFor'])
+		# Requirement.objects.create(*(request.data))
+		recipientType=1
+		if dat['recipientType'] == False:
+			recipientType = 2
+		r = Reminder(recipient=dat['recipient'], purpose=dat['purpose'], notificationsFor=meeting, recipientType=recipientType, sendDateTime=datetime.now())
+		r.save()
+		return Response(status=status.HTTP_200_OK)
