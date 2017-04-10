@@ -7,6 +7,7 @@ Please install the following using ```pip```
 
 1. Django v1.10.5
 2. Django REST framework v3.5.4
+3. scheduler 
 
 ## Usage:
 
