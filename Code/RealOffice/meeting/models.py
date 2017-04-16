@@ -69,7 +69,7 @@ class Reminder(models.Model):
 	recipientType = models.IntegerField(choices= rectype)
 	purpose 	  = models.CharField(max_length= 128)
 	sendDateTime  = models.DateTimeField()
-	
+	isReminded    = models.BooleanField(default=False)
 	notificationsFor = models.ForeignKey(Meeting, on_delete= models.CASCADE)
 
 

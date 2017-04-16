@@ -25,4 +25,5 @@ urlpatterns = [
     url(r'^requirement/toggle/$', views.RequirementApprovalToggle.as_view(), name='requirement_toggle'),
     url(r'^requirement/add/$', views.RequirementAdd.as_view(), name='requirement_add'),
     url(r'^reminder/add/$', views.ReminderAdd.as_view(), name='reminder_add'),
+    url(r'^invitation/accept/$', views.AcceptInvitation.as_view(), name='invite add'),
 ]
