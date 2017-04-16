@@ -9,15 +9,18 @@ from django.utils import timezone
 from datetime import datetime
 
 
-status_choices = (("SCHEDULED", 1), ("RUNNING", 2), ("POST_MEETING", 3), ("FINISHED", 4), ("CANCELLED", 5))
-rectype = (("User",1), ("Person",2))
+status_choices = ((1, "SCHEDULED"), (2, "RUNNING"), (3, "POST_MEETING"), (4, "FINISHED"), (5, "CANCELLED"))
+rectype = ((1, "User"), (2, "Person"))
 
 """
 	Extends the django User model
 """
 class UserProfile(models.Model):
-	user     = models.ForeignKey(User, on_delete= models.CASCADE)
+	user     = models.OneToOneField(User, on_delete= models.CASCADE)
 	is_admin = models.BooleanField()
+
+	def __str__(self):
+		return self.user.username
 
 
 class Venue(models.Model):
@@ -25,22 +28,31 @@ class Venue(models.Model):
 	capacity 		= models.IntegerField()
 	infrastructure 	= models.CharField(max_length= 1024)
 
+	def __str__(self):
+		return self.room
+
 
 class Person(models.Model):
 	name  = models.CharField(max_length= 128)
 	email = models.CharField(max_length= 128, unique= True)
+
+	def __str__(self):
+		return self.name
 
 
 class MeetingWorkflow(models.Model):
 	actions 	= models.CharField(max_length= 1024)
 	meetingType = models.CharField(max_length= 64, unique= True)
 
+	def __str__(self):
+		return self.meetingType
+
 
 class Meeting(models.Model):
 	name 	= models.CharField(max_length= 128, unique= True)
 	stime 	= models.DateTimeField()
  	etime 	= models.DateTimeField()
-	status 	= models.IntegerField(choices= status_choices)
+	status 	= models.IntegerField(choices= status_choices, default= 1)
 	
 	createdBy 	= models.ForeignKey(UserProfile)
 	createdOn 	= models.DateTimeField(default= timezone.now)
@@ -48,13 +60,16 @@ class Meeting(models.Model):
 	organizedBy = models.ForeignKey(Person)
 	ofType 		= models.ForeignKey(MeetingWorkflow)
 
+	def __str__(self):
+		return self.name
+
 
 class Reminder(models.Model):
 	recipient 	  = models.CharField(max_length= 64)
 	recipientType = models.IntegerField(choices= rectype)
 	purpose 	  = models.CharField(max_length= 128)
 	sendDateTime  = models.DateTimeField()
-	
+	isReminded    = models.BooleanField(default=False)
 	notificationsFor = models.ForeignKey(Meeting, on_delete= models.CASCADE)
 
 
@@ -62,14 +77,57 @@ class Requirement(models.Model):
 	item = models.CharField(max_length= 128)
 	qty  = models.IntegerField()
 	cost = models.FloatField()
-	orderDetails = models.CharField(max_length= 128)
+	orderDetails = models.CharField(max_length= 128, default= None, null= True)
 	isApproved   = models.BooleanField()	
 	
 	prereqFor = models.ForeignKey(Meeting, on_delete= models.CASCADE)
 
 
 class Invitation(models.Model):
-	meetingId = models.ForeignKey(Meeting, on_delete= models.CASCADE)
-	personId  = models.ForeignKey(Person, on_delete= models.CASCADE)
-
+	meeting = models.ForeignKey(Meeting, on_delete= models.CASCADE)
+	person  = models.ForeignKey(Person, on_delete= models.CASCADE)
+	token	= models.CharField(max_length= 200)
 	willAttend = models.BooleanField()
+
+	def save(self):
+		from django.core.mail import send_mail
+		import hashlib
+		hasher = hashlib.md5()
+		hasher.update(self.person.name + ' ' + self.meeting.name + ' ' + str(self.meeting.stime))
+		self.token = hasher.hexdigest()
+		print self.token
+		print type(self.token)
+		from django.template.loader import render_to_string
+		from django.core.mail import EmailMessage
+		mail_obj = {}
+		meeting = self.meeting
+		mail_obj['subject'] = 'RealOffice: Invitation to '+meeting.name
+		mail_obj['message'] = render_to_string('invitee_mail.html', {'meeting': meeting, 'invitation':self, 'person':self.person})
+		mail_obj['sendermail'] = 'realofficemailer@gmail.com'
+		mail_obj['receiver'] = self.person.email
+		msg = EmailMessage(
+		    mail_obj['subject'],
+		    mail_obj['message'],
+		    from_email=mail_obj['sendermail'],
+		    to=[mail_obj['receiver']]
+		)
+		msg.content_subtype = 'html'
+		msg.send()
+		# mail_obj = {}
+		# meeting = self.meeting
+		# mail_obj['subject'] = 'Invitation to '+meeting.name
+		# mail_obj['message'] = 'Hello! You are cordially invited to '+ str(meeting.ofType) +' '+str(meeting.name) \
+		# + ' organized by '+ str(meeting.organizedBy) +' set up at '+str(meeting.hostedAt)+' starting ' +str(meeting.stime)+' ending '\
+		# + str(meeting.etime) + '\n\nTo accept invite, please click the url below http://localhost:8000/api/invitation/accept/?person='+str(self.person.id)+'meeting='+str(meeting.id)+'&token='\
+		# + str(self.token) 
+		# mail_obj['sendermail'] = meeting.organizedBy.email
+		# mail_obj['receiver'] = self.person.email
+		
+		# send_mail(
+		#     mail_obj['subject'],
+		#     mail_obj['message'],
+		#     mail_obj['sendermail'],
+		#     [mail_obj['receiver']],
+		#     fail_silently=False,
+		# )
+		super(Invitation, self).save()
